@@ -62,10 +62,12 @@ function makeSolvedBoard() {
 
 function rotateAt(row, column) {
   if (state.complete) return;
+  const tileRects = tileRectangles();
   state.board = rotateClockwise(state.board, row, column);
   state.moves += 1;
   state.complete = isComplete(state.board);
-  render(true);
+  render();
+  animateRotation(row, column, tileRects);
 }
 
 function rotateClockwise(board, row, column) {
@@ -88,11 +90,7 @@ function restartPuzzle() {
   render();
 }
 
-function render(animate = false) {
-  if (animate) {
-    elements.board.classList.add("is-rotating");
-    window.setTimeout(() => elements.board.classList.remove("is-rotating"), 170);
-  }
+function render() {
   const connected = connectedColours(state.board);
   const children = state.board.map((colour, index) => {
     const tile = document.createElement("div");
@@ -100,6 +98,7 @@ function render(animate = false) {
     tile.style.setProperty("--colour", colour.value);
     tile.style.gridColumn = String(index % SIZE + 1);
     tile.style.gridRow = String(Math.floor(index / SIZE) + 1);
+    tile.dataset.index = String(index);
     tile.setAttribute("role", "img");
     tile.setAttribute("aria-label", `${colour.label}, row ${Math.floor(index / SIZE) + 1}, column ${index % SIZE + 1}${connected.has(colour.key) ? ", connected" : ""}`);
     return tile;
@@ -130,6 +129,35 @@ function makeRotationButton(row, column) {
   button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.8 9.8A7.2 7.2 0 1 0 19 14"/><path d="M18.8 4.5v5.3h-5.3"/></svg>';
   button.addEventListener("click", () => rotateAt(row, column));
   return button;
+}
+
+function tileRectangles() {
+  return new Map([...elements.board.querySelectorAll(".tile")].map((tile) => [Number(tile.dataset.index), tile.getBoundingClientRect()]));
+}
+
+function animateRotation(row, column, previousRects) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const topLeft = row * SIZE + column;
+  const topRight = topLeft + 1;
+  const bottomLeft = topLeft + SIZE;
+  const bottomRight = bottomLeft + 1;
+  const movements = [
+    [topLeft, topRight],
+    [topRight, bottomRight],
+    [bottomRight, bottomLeft],
+    [bottomLeft, topLeft]
+  ];
+
+  for (const [source, destination] of movements) {
+    const sourceRect = previousRects.get(source);
+    const tile = elements.board.querySelector(`[data-index="${destination}"]`);
+    if (!sourceRect || !tile || typeof tile.animate !== "function") continue;
+    const destinationRect = tile.getBoundingClientRect();
+    tile.animate([
+      { transform: `translate(${sourceRect.left - destinationRect.left}px, ${sourceRect.top - destinationRect.top}px)`, zIndex: 1 },
+      { transform: "translate(0, 0)", zIndex: 1 }
+    ], { duration: 270, easing: "cubic-bezier(.2, .8, .2, 1)" });
+  }
 }
 
 function connectedColours(board) {
