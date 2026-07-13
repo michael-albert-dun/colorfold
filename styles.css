@@ -113,9 +113,9 @@ h1 { position: relative; display: inline-block; margin: 0; font-size: clamp(2rem
 }
 .tile.is-connected { border-color: rgba(35,50,61,.72); }
 
-.rotation-button { position: absolute; z-index: 2; top: calc(var(--row) * 25%); left: calc(var(--column) * 25%); display: grid; width: 29px; height: 29px; padding: 0; place-items: center; border: 1px solid var(--tile-border); border-radius: 50%; background: rgba(251,253,255,.97); color: var(--muted); cursor: pointer; box-shadow: 0 4px 10px rgba(45,62,76,.14); transform: translate(-50%, -50%); transition: background-color 140ms ease, color 140ms ease, transform 140ms ease; }
-.rotation-button:hover { background: var(--button-hover); color: var(--ink); transform: translate(-50%, -50%) scale(1.12); }
-.rotation-button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
+.rotation-button { position: absolute; z-index: 2; top: calc(var(--row) * 25%); left: calc(var(--column) * 25%); display: grid; width: 29px; height: 29px; padding: 0; place-items: center; border: 0; border-radius: 50%; background: transparent; color: rgba(41,52,61,.76); cursor: pointer; transform: translate(-50%, -50%); transition: color 140ms ease, transform 140ms ease; }
+.rotation-button:hover { color: var(--ink); transform: translate(-50%, -50%) scale(1.12); }
+.rotation-button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.6; filter: drop-shadow(0 1px 1px rgba(255,255,255,.45)); }
 
 .status { display: grid; min-height: 42px; margin: 13px auto 0; width: min(100%, 400px); place-items: center; color: var(--muted); }
 #move-count { margin: 0; font-size: .9rem; font-weight: 560; }
@@ -136,5 +136,5 @@ button:focus-visible, .title-hint:focus-visible { outline: 3px solid var(--focus
   .board { gap: 2px; }
   .tile { border-radius: 15px; }
   .rotation-button { width: 25px; height: 25px; }
-  .rotation-button svg { width: 16px; height: 16px; }
+  .rotation-button svg { width: 18px; height: 18px; }
 }
