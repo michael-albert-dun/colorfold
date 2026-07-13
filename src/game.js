@@ -5,9 +5,11 @@ const PALETTE = [
   { key: "green", label: "green", value: "#67bda1" },
   { key: "red", label: "red", value: "#d98778" }
 ];
+const SCRAMBLE_MOVE_COUNT = 7;
+const CORNER_COUNT = (SIZE - 1) ** 2;
 let tetrominoTilings = [];
 
-const state = { board: [], initialBoard: [], moves: 0, complete: false };
+const state = { board: [], initialBoard: [], scramble: [], moves: 0, complete: false };
 const elements = {
   board: document.querySelector("#board"),
   moveCount: document.querySelector("#move-count"),
@@ -31,7 +33,9 @@ async function loadTilings() {
     if (!response.ok) throw new Error(`Could not load tilings (${response.status})`);
     tetrominoTilings = (await response.text()).trim().split(/\s+/).filter((tiling) => tiling.length === SIZE * SIZE);
     if (!tetrominoTilings.length) throw new Error("No usable tetromino tilings found");
-    newPuzzle();
+    const sharedPuzzle = puzzleFromUrl();
+    if (sharedPuzzle) startPuzzle(sharedPuzzle.board, sharedPuzzle.scramble);
+    else newPuzzle();
   } catch (error) {
     console.error(error);
     elements.completion.textContent = "Could not load the puzzle shapes.";
@@ -43,21 +47,28 @@ function newPuzzle() {
   if (!tetrominoTilings.length) return;
   const solved = makeSolvedBoard();
   let board = solved.slice();
+  const scramble = [];
 
   // Scramble anticlockwise so every scramble move is undone by the player's
   // clockwise action. Repeated use of a junction is deliberately allowed.
-  const scrambleMoves = 7;
-  for (let turn = 0; turn < scrambleMoves; turn += 1) {
+  for (let turn = 0; turn < SCRAMBLE_MOVE_COUNT; turn += 1) {
     const row = Math.floor(Math.random() * (SIZE - 1));
     const column = Math.floor(Math.random() * (SIZE - 1));
     board = rotateAnticlockwise(board, row, column);
+    scramble.push({ row, column });
   }
 
   if (isComplete(board)) return newPuzzle();
+  startPuzzle(board, scramble, { recordUrl: true });
+}
+
+function startPuzzle(board, scramble = [], { recordUrl = false } = {}) {
   state.board = board;
   state.initialBoard = board.slice();
+  state.scramble = scramble;
   state.moves = 0;
   state.complete = false;
+  if (recordUrl) updatePuzzleUrl();
   render();
 }
 
@@ -108,6 +119,41 @@ function restartPuzzle() {
   state.moves = 0;
   state.complete = false;
   render();
+}
+
+function puzzleFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const encodedBoard = params.get("state");
+  if (!encodedBoard || !/^[0-3]{16}$/.test(encodedBoard)) return null;
+  if (!PALETTE.every((colour, index) => [...encodedBoard].filter((cell) => cell === String(index)).length === 4)) return null;
+  return {
+    board: [...encodedBoard].map((cell) => PALETTE[Number(cell)]),
+    scramble: decodeScramble(params.get("m"))
+  };
+}
+
+function updatePuzzleUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.set("state", state.initialBoard.map((colour) => PALETTE.indexOf(colour)).join(""));
+  url.searchParams.set("m", encodeScramble(state.scramble));
+  window.history.replaceState(null, "", url);
+}
+
+function encodeScramble(moves) {
+  return moves.reduce((code, move) => code * CORNER_COUNT + move.row * (SIZE - 1) + move.column, 0).toString(36);
+}
+
+function decodeScramble(token) {
+  if (!token || !/^[0-9a-z]+$/i.test(token)) return [];
+  let code = Number.parseInt(token, 36);
+  if (!Number.isSafeInteger(code) || code >= CORNER_COUNT ** SCRAMBLE_MOVE_COUNT) return [];
+  const moves = Array(SCRAMBLE_MOVE_COUNT);
+  for (let index = SCRAMBLE_MOVE_COUNT - 1; index >= 0; index -= 1) {
+    const corner = code % CORNER_COUNT;
+    moves[index] = { row: Math.floor(corner / (SIZE - 1)), column: corner % (SIZE - 1) };
+    code = Math.floor(code / CORNER_COUNT);
+  }
+  return moves;
 }
 
 function render() {

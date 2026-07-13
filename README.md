@@ -37,6 +37,13 @@ Tintangle is a compact connection puzzle for early design exploration.
   4×4.
 - Test whether the completed-group borders help learning or give away too much.
 
+## Puzzle URLs
+
+Each new puzzle replaces the browser URL with a readable `state` parameter:
+sixteen digits in row-major board order, using `0`–`3` for the palette order.
+It also records the seven generating anticlockwise rotations in `m`, a compact
+base-36 encoding. Opening the URL restores the initial board.
+
 ## Local preview
 
 From this repository root:
