@@ -89,13 +89,13 @@ function rotateAt(row, column) {
   performRotation(row, column);
 }
 
-function performRotation(row, column) {
+function performRotation(row, column, animationDuration = 270) {
   const tileRects = tileRectangles();
   state.board = rotateClockwise(state.board, row, column);
   state.moves += 1;
   state.complete = isComplete(state.board);
   render();
-  animateRotation(row, column, tileRects);
+  animateRotation(row, column, tileRects, animationDuration);
 }
 
 function rotateClockwise(board, row, column) {
@@ -149,11 +149,11 @@ function playSolution() {
       render();
       return;
     }
-    performRotation(move.row, move.column);
-    cheatTimer = window.setTimeout(nextMove, 390);
+    performRotation(move.row, move.column, 350);
+    cheatTimer = window.setTimeout(nextMove, 510);
   }
 
-  cheatTimer = window.setTimeout(nextMove, 320);
+  cheatTimer = window.setTimeout(nextMove, 420);
 }
 
 function stopCheat() {
@@ -247,7 +247,7 @@ function tileRectangles() {
   return new Map([...elements.board.querySelectorAll(".tile")].map((tile) => [Number(tile.dataset.index), tile.getBoundingClientRect()]));
 }
 
-function animateRotation(row, column, previousRects) {
+function animateRotation(row, column, previousRects, duration = 270) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const topLeft = row * SIZE + column;
   const topRight = topLeft + 1;
@@ -268,7 +268,7 @@ function animateRotation(row, column, previousRects) {
     tile.animate([
       { transform: `translate(${sourceRect.left - destinationRect.left}px, ${sourceRect.top - destinationRect.top}px)`, zIndex: 1 },
       { transform: "translate(0, 0)", zIndex: 1 }
-    ], { duration: 270, easing: "cubic-bezier(.2, .8, .2, 1)" });
+    ], { duration, easing: "cubic-bezier(.2, .8, .2, 1)" });
   }
 }
 
