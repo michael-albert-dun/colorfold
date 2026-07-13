@@ -47,8 +47,8 @@ function newPuzzle() {
 
   // Scramble anticlockwise so every scramble move is undone by the player's
   // clockwise action. Repeated use of a junction is deliberately allowed.
-  const rotations = 7 + Math.floor(Math.random() * 5);
-  for (let turn = 0; turn < rotations; turn += 1) {
+  const scrambleMoves = 7;
+  for (let turn = 0; turn < scrambleMoves; turn += 1) {
     const row = Math.floor(Math.random() * (SIZE - 1));
     const column = Math.floor(Math.random() * (SIZE - 1));
     board = rotateAnticlockwise(board, row, column);
