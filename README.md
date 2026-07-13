@@ -15,9 +15,11 @@ Colorfold is a compact connection puzzle for early design exploration.
 
 - The interface borrows Digitiler's soft, quiet card treatment: pale background,
   rounded square tiles, small information affordance, and restart/new controls.
-- Each puzzle begins as four connected 2×2 colour groups, then is scrambled by
-  six to nine legal reversals. This guarantees a solution without needing a
-  solver or a precomputed puzzle catalogue.
+- Each puzzle begins as a randomly selected four-tetromino tiling of the 4×4
+  board, using `data/tetromino-tilings-4x4.txt` copied from Digitiler. The four
+  connected shapes receive randomly assigned colours, then the board is
+  scrambled by seven to eleven anticlockwise rotations. This guarantees a
+  solution because the player can undo each scramble rotation clockwise.
 - The tiles form a close 4×4 background grid. Rotation controls are overlaid at
   the nine internal junctions, keeping the actions clear without opening large
   gutters between tiles.

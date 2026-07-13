@@ -5,6 +5,7 @@ const PALETTE = [
   { key: "green", label: "green", value: "#67bda1" },
   { key: "red", label: "red", value: "#d98778" }
 ];
+let tetrominoTilings = [];
 
 const state = { board: [], initialBoard: [], moves: 0, complete: false };
 const elements = {
@@ -23,22 +24,34 @@ elements.newPuzzle.addEventListener("click", newPuzzle);
 elements.infoButton.addEventListener("click", toggleInfo);
 document.addEventListener("pointerdown", closeInfoOutside, true);
 document.addEventListener("keydown", handleKeyDown);
-newPuzzle();
+loadTilings();
+
+async function loadTilings() {
+  try {
+    const response = await fetch("data/tetromino-tilings-4x4.txt");
+    if (!response.ok) throw new Error(`Could not load tilings (${response.status})`);
+    tetrominoTilings = (await response.text()).trim().split(/\s+/).filter((tiling) => tiling.length === SIZE * SIZE);
+    if (!tetrominoTilings.length) throw new Error("No usable tetromino tilings found");
+    newPuzzle();
+  } catch (error) {
+    console.error(error);
+    elements.completion.textContent = "Could not load the puzzle shapes.";
+    elements.completion.classList.add("is-complete");
+  }
+}
 
 function newPuzzle() {
+  if (!tetrominoTilings.length) return;
   const solved = makeSolvedBoard();
   let board = solved.slice();
-  let previous = "";
 
-  // Scramble with the exact clockwise operation available to the player.
+  // Scramble anticlockwise so every scramble move is undone by the player's
+  // clockwise action. Repeated use of a junction is deliberately allowed.
   const rotations = 7 + Math.floor(Math.random() * 5);
   for (let turn = 0; turn < rotations; turn += 1) {
-    let corner;
-    do {
-      corner = { row: Math.floor(Math.random() * (SIZE - 1)), column: Math.floor(Math.random() * (SIZE - 1)) };
-    } while (`${corner.row},${corner.column}` === previous);
-    board = rotateClockwise(board, corner.row, corner.column);
-    previous = `${corner.row},${corner.column}`;
+    const row = Math.floor(Math.random() * (SIZE - 1));
+    const column = Math.floor(Math.random() * (SIZE - 1));
+    board = rotateAnticlockwise(board, row, column);
   }
 
   if (isComplete(board)) return newPuzzle();
@@ -51,13 +64,8 @@ function newPuzzle() {
 
 function makeSolvedBoard() {
   const colours = shuffle(PALETTE);
-  const board = Array(SIZE * SIZE);
-  for (let row = 0; row < SIZE; row += 1) {
-    for (let column = 0; column < SIZE; column += 1) {
-      board[row * SIZE + column] = colours[Math.floor(row / 2) * 2 + Math.floor(column / 2)];
-    }
-  }
-  return board;
+  const tiling = tetrominoTilings[Math.floor(Math.random() * tetrominoTilings.length)];
+  return [...tiling].map((group) => colours[Number(group)]);
 }
 
 function rotateAt(row, column) {
@@ -80,6 +88,19 @@ function rotateClockwise(board, row, column) {
   next[topRight] = board[topLeft];
   next[bottomRight] = board[topRight];
   next[bottomLeft] = board[bottomRight];
+  return next;
+}
+
+function rotateAnticlockwise(board, row, column) {
+  const next = board.slice();
+  const topLeft = row * SIZE + column;
+  const topRight = topLeft + 1;
+  const bottomLeft = topLeft + SIZE;
+  const bottomRight = bottomLeft + 1;
+  next[topLeft] = board[topRight];
+  next[topRight] = board[bottomRight];
+  next[bottomRight] = board[bottomLeft];
+  next[bottomLeft] = board[topLeft];
   return next;
 }
 
