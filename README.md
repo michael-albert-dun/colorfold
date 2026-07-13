@@ -18,8 +18,9 @@ Colorfold is a compact connection puzzle for early design exploration.
 - Each puzzle begins as four connected 2×2 colour groups, then is scrambled by
   six to nine legal reversals. This guarantees a solution without needing a
   solver or a precomputed puzzle catalogue.
-- The rotation controls sit directly in the nine gaps between four tiles, making
-  each available local action visible at a glance.
+- The tiles form a close 4×4 background grid. Rotation controls are overlaid at
+  the nine internal junctions, keeping the actions clear without opening large
+  gutters between tiles.
 - Coloured status dots show which colour groups are presently connected. A
   completion notice and move count provide minimal feedback without imposing an
   optimality target yet.

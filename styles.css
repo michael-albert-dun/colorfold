@@ -101,7 +101,7 @@ h1 { position: relative; display: inline-block; margin: 0; font-size: clamp(2rem
 }
 .title-hint:hover::after, .title-hint:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
 
-.board { --junction-size: 12px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr) var(--junction-size)) minmax(0, 1fr); grid-template-rows: repeat(3, minmax(0, 1fr) var(--junction-size)) minmax(0, 1fr); width: min(100%, 400px); aspect-ratio: 1; margin: 0 auto; }
+.board { position: relative; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 3px; width: min(100%, 400px); aspect-ratio: 1; margin: 0 auto; }
 .tile {
   min-width: 0;
   border: 2px solid color-mix(in srgb, var(--colour) 54%, #ffffff);
@@ -114,9 +114,9 @@ h1 { position: relative; display: inline-block; margin: 0; font-size: clamp(2rem
 .tile.is-connected { border-color: rgba(35,50,61,.72); }
 .board.is-rotating .tile { transform: scale(.94); }
 
-.rotation-button { z-index: 2; align-self: center; justify-self: center; display: grid; width: var(--junction-size); height: var(--junction-size); padding: 0; place-items: center; border: 1px solid var(--tile-border); border-radius: 50%; background: rgba(251,253,255,.96); color: var(--muted); cursor: pointer; box-shadow: 0 3px 7px rgba(45,62,76,.12); transition: background-color 140ms ease, color 140ms ease, transform 140ms ease; }
-.rotation-button:hover { background: var(--button-hover); color: var(--ink); transform: scale(1.12); }
-.rotation-button svg { width: 9px; height: 9px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2; }
+.rotation-button { position: absolute; z-index: 2; top: calc(var(--row) * 25%); left: calc(var(--column) * 25%); display: grid; width: 24px; height: 24px; padding: 0; place-items: center; border: 1px solid var(--tile-border); border-radius: 50%; background: rgba(251,253,255,.97); color: var(--muted); cursor: pointer; box-shadow: 0 4px 10px rgba(45,62,76,.14); transform: translate(-50%, -50%); transition: background-color 140ms ease, color 140ms ease, transform 140ms ease; }
+.rotation-button:hover { background: var(--button-hover); color: var(--ink); transform: translate(-50%, -50%) scale(1.12); }
+.rotation-button svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.8; }
 
 .status { display: flex; align-items: center; justify-content: space-between; min-height: 42px; margin: 13px auto 0; width: min(100%, 400px); color: var(--muted); }
 .connection-status { display: flex; gap: 8px; }
@@ -139,8 +139,9 @@ button:focus-visible, .title-hint:focus-visible { outline: 3px solid var(--focus
 @media (max-width: 430px) {
   .app { padding: 12px; }
   .play-area { padding: 18px 14px; border-radius: 22px; }
-  .board { --junction-size: 10px; }
+  .board { gap: 2px; }
   .tile { border-radius: 15px; }
-  .rotation-button svg { width: 8px; height: 8px; }
+  .rotation-button { width: 21px; height: 21px; }
+  .rotation-button svg { width: 13px; height: 13px; }
   .connection-status { gap: 5px; }
 }

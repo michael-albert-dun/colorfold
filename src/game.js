@@ -98,8 +98,8 @@ function render(animate = false) {
     const tile = document.createElement("div");
     tile.className = `tile${connected.has(colour.key) ? " is-connected" : ""}`;
     tile.style.setProperty("--colour", colour.value);
-    tile.style.gridColumn = String((index % SIZE) * 2 + 1);
-    tile.style.gridRow = String(Math.floor(index / SIZE) * 2 + 1);
+    tile.style.gridColumn = String(index % SIZE + 1);
+    tile.style.gridRow = String(Math.floor(index / SIZE) + 1);
     tile.setAttribute("role", "img");
     tile.setAttribute("aria-label", `${colour.label}, row ${Math.floor(index / SIZE) + 1}, column ${index % SIZE + 1}${connected.has(colour.key) ? ", connected" : ""}`);
     return tile;
@@ -124,8 +124,8 @@ function makeRotationButton(row, column) {
   const button = document.createElement("button");
   button.className = "rotation-button";
   button.type = "button";
-  button.style.gridColumn = String(column * 2 + 2);
-  button.style.gridRow = String(row * 2 + 2);
+  button.style.setProperty("--row", String(row + 1));
+  button.style.setProperty("--column", String(column + 1));
   button.setAttribute("aria-label", `Rotate the four squares around this corner clockwise (rows ${row + 1}–${row + 2}, columns ${column + 1}–${column + 2})`);
   button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.8 9.8A7.2 7.2 0 1 0 19 14"/><path d="M18.8 4.5v5.3h-5.3"/></svg>';
   button.addEventListener("click", () => rotateAt(row, column));
