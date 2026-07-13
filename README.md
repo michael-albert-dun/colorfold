@@ -42,7 +42,9 @@ Tintangle is a compact connection puzzle for early design exploration.
 Each new puzzle replaces the browser URL with a readable `state` parameter:
 sixteen digits in row-major board order, using `0`–`3` for the palette order.
 It also records the seven generating anticlockwise rotations in `m`, a compact
-base-36 encoding. Opening the URL restores the initial board.
+base-36 encoding. Opening the URL restores the initial board. The Cheat button
+is enabled only when both parameters form a verified generated puzzle; it
+resets the board and plays the recorded clockwise solution.
 
 ## Local preview
 

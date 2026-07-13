@@ -9,19 +9,22 @@ const SCRAMBLE_MOVE_COUNT = 7;
 const CORNER_COUNT = (SIZE - 1) ** 2;
 let tetrominoTilings = [];
 
-const state = { board: [], initialBoard: [], scramble: [], moves: 0, complete: false };
+const state = { board: [], initialBoard: [], scramble: [], solution: [], moves: 0, complete: false, cheating: false };
+let cheatTimer = null;
 const elements = {
   board: document.querySelector("#board"),
   moveCount: document.querySelector("#move-count"),
   completion: document.querySelector("#completion-message"),
   restart: document.querySelector("#restart-button"),
   newPuzzle: document.querySelector("#new-button"),
+  cheat: document.querySelector("#cheat-button"),
   infoButton: document.querySelector("#info-button"),
   infoPanel: document.querySelector("#info-panel")
 };
 
 elements.restart.addEventListener("click", restartPuzzle);
 elements.newPuzzle.addEventListener("click", newPuzzle);
+elements.cheat.addEventListener("click", playSolution);
 elements.infoButton.addEventListener("click", toggleInfo);
 document.addEventListener("pointerdown", closeInfoOutside, true);
 document.addEventListener("keydown", handleKeyDown);
@@ -34,8 +37,8 @@ async function loadTilings() {
     tetrominoTilings = (await response.text()).trim().split(/\s+/).filter((tiling) => tiling.length === SIZE * SIZE);
     if (!tetrominoTilings.length) throw new Error("No usable tetromino tilings found");
     const sharedPuzzle = puzzleFromUrl();
-    if (sharedPuzzle) startPuzzle(sharedPuzzle.board, sharedPuzzle.scramble);
-    else newPuzzle();
+    if (sharedPuzzle) startPuzzle(sharedPuzzle.board, sharedPuzzle.scramble, { cheatAvailable: sharedPuzzle.cheatAvailable });
+    else newPuzzle({ recordUrl: !hasPuzzleUrlParameters(), cheatAvailable: !hasPuzzleUrlParameters() });
   } catch (error) {
     console.error(error);
     elements.completion.textContent = "Could not load the puzzle shapes.";
@@ -43,8 +46,9 @@ async function loadTilings() {
   }
 }
 
-function newPuzzle() {
+function newPuzzle({ recordUrl = true, cheatAvailable = true } = {}) {
   if (!tetrominoTilings.length) return;
+  stopCheat();
   const solved = makeSolvedBoard();
   let board = solved.slice();
   const scramble = [];
@@ -59,13 +63,15 @@ function newPuzzle() {
   }
 
   if (isComplete(board)) return newPuzzle();
-  startPuzzle(board, scramble, { recordUrl: true });
+  startPuzzle(board, scramble, { recordUrl, cheatAvailable });
 }
 
-function startPuzzle(board, scramble = [], { recordUrl = false } = {}) {
+function startPuzzle(board, scramble = [], { recordUrl = false, cheatAvailable = true } = {}) {
+  stopCheat();
   state.board = board;
   state.initialBoard = board.slice();
   state.scramble = scramble;
+  state.solution = cheatAvailable ? solutionFromScramble(board, scramble) : [];
   state.moves = 0;
   state.complete = false;
   if (recordUrl) updatePuzzleUrl();
@@ -79,7 +85,11 @@ function makeSolvedBoard() {
 }
 
 function rotateAt(row, column) {
-  if (state.complete) return;
+  if (state.complete || state.cheating) return;
+  performRotation(row, column);
+}
+
+function performRotation(row, column) {
   const tileRects = tileRectangles();
   state.board = rotateClockwise(state.board, row, column);
   state.moves += 1;
@@ -115,10 +125,41 @@ function rotateAnticlockwise(board, row, column) {
 }
 
 function restartPuzzle() {
+  stopCheat();
   state.board = state.initialBoard.slice();
   state.moves = 0;
   state.complete = false;
   render();
+}
+
+function playSolution() {
+  if (!state.solution.length || state.cheating) return;
+  stopCheat();
+  state.board = state.initialBoard.slice();
+  state.moves = 0;
+  state.complete = false;
+  state.cheating = true;
+  render();
+  const moves = state.solution.slice();
+
+  function nextMove() {
+    const move = moves.shift();
+    if (!move) {
+      state.cheating = false;
+      render();
+      return;
+    }
+    performRotation(move.row, move.column);
+    cheatTimer = window.setTimeout(nextMove, 390);
+  }
+
+  cheatTimer = window.setTimeout(nextMove, 320);
+}
+
+function stopCheat() {
+  if (cheatTimer !== null) window.clearTimeout(cheatTimer);
+  cheatTimer = null;
+  state.cheating = false;
 }
 
 function puzzleFromUrl() {
@@ -126,10 +167,14 @@ function puzzleFromUrl() {
   const encodedBoard = params.get("state");
   if (!encodedBoard || !/^[0-3]{16}$/.test(encodedBoard)) return null;
   if (!PALETTE.every((colour, index) => [...encodedBoard].filter((cell) => cell === String(index)).length === 4)) return null;
-  return {
-    board: [...encodedBoard].map((cell) => PALETTE[Number(cell)]),
-    scramble: decodeScramble(params.get("m"))
-  };
+  const board = [...encodedBoard].map((cell) => PALETTE[Number(cell)]);
+  const scramble = decodeScramble(params.get("m"));
+  return { board, scramble: scramble || [], cheatAvailable: Boolean(scramble && solutionFromScramble(board, scramble).length) };
+}
+
+function hasPuzzleUrlParameters() {
+  const params = new URLSearchParams(window.location.search);
+  return params.has("state") || params.has("m");
 }
 
 function updatePuzzleUrl() {
@@ -144,9 +189,9 @@ function encodeScramble(moves) {
 }
 
 function decodeScramble(token) {
-  if (!token || !/^[0-9a-z]+$/i.test(token)) return [];
+  if (!token || !/^[0-9a-z]+$/i.test(token)) return null;
   let code = Number.parseInt(token, 36);
-  if (!Number.isSafeInteger(code) || code >= CORNER_COUNT ** SCRAMBLE_MOVE_COUNT) return [];
+  if (!Number.isSafeInteger(code) || code >= CORNER_COUNT ** SCRAMBLE_MOVE_COUNT) return null;
   const moves = Array(SCRAMBLE_MOVE_COUNT);
   for (let index = SCRAMBLE_MOVE_COUNT - 1; index >= 0; index -= 1) {
     const corner = code % CORNER_COUNT;
@@ -154,6 +199,13 @@ function decodeScramble(token) {
     code = Math.floor(code / CORNER_COUNT);
   }
   return moves;
+}
+
+function solutionFromScramble(initialBoard, scramble) {
+  if (scramble.length !== SCRAMBLE_MOVE_COUNT) return [];
+  const solution = scramble.slice().reverse();
+  const resultingBoard = solution.reduce((board, move) => rotateClockwise(board, move.row, move.column), initialBoard);
+  return isComplete(resultingBoard) ? solution : [];
 }
 
 function render() {
@@ -174,6 +226,7 @@ function render() {
   }
   elements.board.replaceChildren(...children);
   elements.moveCount.textContent = `${state.moves} ${state.moves === 1 ? "move" : "moves"}`;
+  elements.cheat.disabled = !state.solution.length || state.cheating;
   elements.completion.textContent = state.complete ? `Connected in ${state.moves} ${state.moves === 1 ? "move" : "moves"}.` : "";
   elements.completion.classList.toggle("is-complete", state.complete);
 }

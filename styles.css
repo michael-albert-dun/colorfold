@@ -127,6 +127,10 @@ h1 { position: relative; display: inline-block; margin: 0; font-size: clamp(2rem
 .toolbar button:hover { background: var(--button-hover); }
 .toolbar button:last-child { border-color: #5b95a4; background: #d8edf1; }
 .toolbar button:last-child:hover { background: #c6e4e9; }
+.cheat-row { display: grid; margin-top: 10px; place-items: center; }
+.cheat-row button { min-width: 126px; min-height: 35px; border: 1px solid var(--tile-border); border-radius: 11px; background: var(--button); color: var(--muted); cursor: pointer; font-weight: 600; }
+.cheat-row button:hover:not(:disabled) { background: var(--button-hover); color: var(--ink); }
+.cheat-row button:disabled { cursor: default; opacity: .48; }
 
 button:focus-visible, .title-hint:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
