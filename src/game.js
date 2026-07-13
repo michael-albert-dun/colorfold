@@ -18,6 +18,7 @@ const elements = {
   restart: document.querySelector("#restart-button"),
   newPuzzle: document.querySelector("#new-button"),
   cheat: document.querySelector("#cheat-button"),
+  cheatDialog: document.querySelector("#cheat-dialog"),
   numberButton: document.querySelector("#number-button"),
   infoButton: document.querySelector("#info-button"),
   infoPanel: document.querySelector("#info-panel")
@@ -25,7 +26,8 @@ const elements = {
 
 elements.restart.addEventListener("click", restartPuzzle);
 elements.newPuzzle.addEventListener("click", newPuzzle);
-elements.cheat.addEventListener("click", playSolution);
+elements.cheat.addEventListener("click", requestCheat);
+elements.cheatDialog.addEventListener("close", confirmCheat);
 elements.numberButton.addEventListener("click", toggleNumbers);
 elements.infoButton.addEventListener("click", toggleInfo);
 document.addEventListener("pointerdown", closeInfoOutside, true);
@@ -132,6 +134,15 @@ function restartPuzzle() {
   state.moves = 0;
   state.complete = false;
   render();
+}
+
+function requestCheat() {
+  if (!state.solution.length || state.cheating) return;
+  elements.cheatDialog.showModal();
+}
+
+function confirmCheat() {
+  if (elements.cheatDialog.returnValue === "confirm") playSolution();
 }
 
 function playSolution() {

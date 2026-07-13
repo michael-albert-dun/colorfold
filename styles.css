@@ -141,6 +141,17 @@ h1 { position: relative; display: inline-block; margin: 0; font-size: clamp(2rem
 .cheat-row button:hover:not(:disabled) { background: var(--button-hover); color: var(--ink); }
 .cheat-row button:disabled { cursor: default; opacity: .48; }
 
+.cheat-dialog { width: min(330px, calc(100% - 36px)); padding: 0; border: 1px solid var(--tile-border); border-radius: 17px; color: var(--ink); background: var(--panel); box-shadow: 0 20px 48px rgba(45,62,76,.22); }
+.cheat-dialog::backdrop { background: rgba(36,48,58,.24); }
+.cheat-dialog form { padding: 20px; }
+.cheat-dialog h2 { margin: 0; font-size: 1.12rem; }
+.cheat-dialog p { margin: 9px 0 18px; color: var(--muted); font-size: .88rem; line-height: 1.45; }
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.dialog-actions button { min-height: 34px; padding: 0 12px; border: 1px solid var(--tile-border); border-radius: 10px; background: var(--button); color: var(--ink); cursor: pointer; font-weight: 600; }
+.dialog-actions button:last-child { border-color: #5b95a4; background: #d8edf1; }
+.dialog-actions button:hover { background: var(--button-hover); }
+.dialog-actions button:last-child:hover { background: #c6e4e9; }
+
 button:focus-visible, .title-hint:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
 
 @media (max-width: 430px) {
