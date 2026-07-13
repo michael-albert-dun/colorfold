@@ -1,6 +1,6 @@
-# Colorfold — prototype outline
+# Tintangle — prototype outline
 
-Colorfold is a compact connection puzzle for early design exploration.
+Tintangle is a compact connection puzzle for early design exploration.
 
 ## Core loop
 
@@ -45,4 +45,4 @@ From this repository root:
 python3 -m http.server 8000
 ```
 
-Then open `http://localhost:8000/colorfold/`.
+Then open `http://localhost:8000/tintangle/`.

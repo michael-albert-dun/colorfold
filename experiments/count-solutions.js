@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// Count distinct player action sequences which solve a seeded Colorfold board
+// Count distinct player action sequences which solve a seeded Tintangle board
 // for the first time at or below a chosen move limit.
 
 const fs = require("fs");
