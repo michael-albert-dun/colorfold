@@ -199,9 +199,9 @@ function playSolution() {
       state.previewIndex = second;
       render();
       cheatTimer = window.setTimeout(() => {
-        performSegmentReversal(first, second);
+        performSegmentReversal(first, second, 364);
         cheatTimer = window.setTimeout(nextMove, 520);
-      }, 240);
+      }, 320);
     }, 250);
   }
   cheatTimer = window.setTimeout(nextMove, 380);
@@ -309,7 +309,7 @@ function eligibleIndices(index) {
   return eligible;
 }
 
-function performSegmentReversal(first, second) {
+function performSegmentReversal(first, second, animationDuration = 280) {
   const previousRects = tileRectangles();
   state.board = reverseSegment(state.board, first, second);
   state.moves += 1;
@@ -317,7 +317,7 @@ function performSegmentReversal(first, second) {
   state.previewIndex = null;
   state.complete = isComplete(state.board);
   render();
-  animateSegmentReversal(first, second, previousRects);
+  animateSegmentReversal(first, second, previousRects, animationDuration);
 }
 
 function foldEndpoints(move) {
@@ -330,7 +330,7 @@ function tileRectangles() {
   return new Map([...elements.board.querySelectorAll(".tile")].map((tile) => [Number(tile.dataset.index), tile.getBoundingClientRect()]));
 }
 
-function animateSegmentReversal(first, second, previousRects) {
+function animateSegmentReversal(first, second, previousRects, duration = 280) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const firstRow = Math.floor(first / SIZE), firstColumn = first % SIZE;
   const secondRow = Math.floor(second / SIZE), secondColumn = second % SIZE;
@@ -350,7 +350,7 @@ function animateSegmentReversal(first, second, previousRects) {
     tile.animate([
       { transform: `translate(${sourceRect.left - destinationRect.left}px, ${sourceRect.top - destinationRect.top}px)`, zIndex: 1 },
       { transform: "translate(0, 0)", zIndex: 1 }
-    ], { duration: 280, easing: "cubic-bezier(.2, .8, .2, 1)" });
+    ], { duration, easing: "cubic-bezier(.2, .8, .2, 1)" });
   }
 }
 
