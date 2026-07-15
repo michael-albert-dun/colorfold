@@ -123,7 +123,13 @@ h1 { position: relative; display: inline-block; margin: 0; font-size: clamp(2rem
 .tile.is-eligible { box-shadow: inset 0 0 0 3px rgba(255,255,255,.52), 0 7px 17px rgba(45,62,76,.12); }
 .tile.is-preview { border-color: rgba(41,52,61,.72); box-shadow: inset 0 0 0 3px rgba(255,255,255,.58), 0 10px 21px rgba(45,62,76,.15); transform: translateY(-2px); }
 .tile.is-connected { border-color: rgba(35,50,61,.72); }
+.tile.is-mechanism-hint { animation: mechanism-hint-pulse 1.15s ease-in-out infinite; }
 .board.is-folding .tile { transform: scale(.91); }
+
+@keyframes mechanism-hint-pulse {
+  0%, 100% { box-shadow: inset 0 0 0 2px rgba(255,255,255,.64), 0 9px 22px rgba(45,62,76,.09); }
+  50% { box-shadow: inset 0 0 0 5px rgba(255,255,255,.86), 0 0 0 4px rgba(31,122,140,.26), 0 12px 26px rgba(45,62,76,.16); }
+}
 
 .selection-help { min-height: 20px; width: min(100%, 400px); margin: 8px auto 0; color: var(--muted); font-size: .84rem; text-align: center; }
 

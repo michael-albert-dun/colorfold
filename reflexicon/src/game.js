@@ -1,6 +1,8 @@
 const SIZE = 4;
 const MINIMUM_FOLDS = 6;
 const MAXIMUM_FOLDS = 9;
+const MECHANISM_HINT_KEY = "reflexicon-mechanism-hint-seen";
+const MECHANISM_HINT_DURATION = 6200;
 const PALETTE = [
   { key: "blue", label: "blue", value: "#58a9d5" },
   { key: "orange", label: "orange", value: "#efbd62" },
@@ -11,8 +13,9 @@ const PALETTE = [
 let generatorWords = [];
 let validWords = new Set();
 let tetrominoTilings = [];
-const state = { board: [], initialBoard: [], solution: [], moves: 0, complete: false, cheating: false, selectedIndex: null, previewIndex: null };
+const state = { board: [], initialBoard: [], solution: [], moves: 0, complete: false, cheating: false, selectedIndex: null, previewIndex: null, showingMechanismHint: false };
 let cheatTimer = null;
+let mechanismHintTimer = null;
 const elements = {
   board: document.querySelector("#board"),
   selectionHelp: document.querySelector("#selection-help"),
@@ -89,6 +92,7 @@ function newPuzzle({ recordUrl = true, cheatAvailable = true } = {}) {
 
 function startPuzzle(board, solution, { recordUrl = false, cheatAvailable = true } = {}) {
   stopCheat();
+  hideMechanismHint(false);
   state.board = board;
   state.initialBoard = board.slice();
   state.solution = cheatAvailable ? solution : [];
@@ -98,6 +102,7 @@ function startPuzzle(board, solution, { recordUrl = false, cheatAvailable = true
   state.previewIndex = null;
   if (recordUrl) updatePuzzleUrl();
   render();
+  showMechanismHint();
 }
 
 function makeSolvedBoard() {
@@ -113,6 +118,7 @@ function makeSolvedBoard() {
 
 function selectTile(index) {
   if (state.complete || state.cheating) return;
+  hideMechanismHint();
   if (state.selectedIndex === null) {
     state.selectedIndex = index;
     render();
@@ -160,6 +166,7 @@ function reverseSegment(board, first, second) {
 
 function restartPuzzle() {
   stopCheat();
+  hideMechanismHint();
   state.board = state.initialBoard.slice();
   state.moves = 0;
   state.complete = false;
@@ -212,6 +219,26 @@ function stopCheat() {
   cheatTimer = null;
   state.cheating = false;
   state.previewIndex = null;
+}
+
+function showMechanismHint() {
+  try {
+    if (window.sessionStorage.getItem(MECHANISM_HINT_KEY)) return;
+  } catch { /* The hint can safely reappear when storage is unavailable. */ }
+  state.showingMechanismHint = true;
+  render();
+  mechanismHintTimer = window.setTimeout(hideMechanismHint, MECHANISM_HINT_DURATION);
+}
+
+function hideMechanismHint(remember = true) {
+  if (mechanismHintTimer !== null) window.clearTimeout(mechanismHintTimer);
+  mechanismHintTimer = null;
+  if (!state.showingMechanismHint) return;
+  state.showingMechanismHint = false;
+  if (remember) {
+    try { window.sessionStorage.setItem(MECHANISM_HINT_KEY, "true"); } catch { /* No persistent hint state needed. */ }
+  }
+  render();
 }
 
 function puzzleFromUrl() {
@@ -281,7 +308,7 @@ function render(animate = false) {
   const eligible = eligibleIndices(state.selectedIndex);
   elements.board.replaceChildren(...state.board.map((cell, index) => {
     const tile = document.createElement("button");
-    tile.className = `tile${valid.has(cell.colour.key) ? " is-connected" : ""}${state.selectedIndex === index ? " is-selected" : ""}${state.previewIndex === index ? " is-preview" : ""}${eligible.has(index) ? " is-eligible" : ""}`;
+    tile.className = `tile${valid.has(cell.colour.key) ? " is-connected" : ""}${state.selectedIndex === index ? " is-selected" : ""}${state.previewIndex === index ? " is-preview" : ""}${eligible.has(index) ? " is-eligible" : ""}${state.showingMechanismHint && (index === 0 || index === SIZE - 1) ? " is-mechanism-hint" : ""}`;
     tile.type = "button";
     tile.dataset.index = String(index);
     tile.style.setProperty("--colour", cell.colour.value);
@@ -292,7 +319,7 @@ function render(animate = false) {
   }));
   elements.moveCount.textContent = `${state.moves} ${state.moves === 1 ? "move" : "moves"}`;
   elements.cheat.disabled = !state.solution.length || state.cheating;
-  elements.selectionHelp.textContent = state.complete ? "" : state.selectedIndex === null ? "Select a square" : "Select another square in the same row or column";
+  elements.selectionHelp.textContent = state.complete ? "" : state.showingMechanismHint ? "Try it: select the two glowing squares to reverse the row" : state.selectedIndex === null ? "Select a square" : "Select another square in the same row or column";
   elements.completion.textContent = state.complete ? `All four words found in ${state.moves} ${state.moves === 1 ? "move" : "moves"}.` : "";
   elements.completion.classList.toggle("is-complete", state.complete);
 }
