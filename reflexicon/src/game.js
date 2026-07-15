@@ -1,4 +1,6 @@
 const SIZE = 4;
+const MINIMUM_FOLDS = 6;
+const MAXIMUM_FOLDS = 9;
 const PALETTE = [
   { key: "blue", label: "blue", value: "#58a9d5" },
   { key: "orange", label: "orange", value: "#efbd62" },
@@ -46,7 +48,9 @@ async function loadWords() {
     generatorWords = commonWords.filter((word) => validWords.has(word));
     tetrominoTilings = (await tilingsResponse.text()).trim().split(/\s+/).filter((tiling) => tiling.length === SIZE * SIZE);
     if (!generatorWords.length || !validWords.size || !tetrominoTilings.length) throw new Error("No usable puzzle data");
-    newPuzzle();
+    const sharedPuzzle = puzzleFromUrl();
+    if (sharedPuzzle) startPuzzle(sharedPuzzle.board, sharedPuzzle.solution, { cheatAvailable: true });
+    else newPuzzle({ recordUrl: !hasPuzzleUrlParameters(), cheatAvailable: !hasPuzzleUrlParameters() });
   } catch (error) {
     console.error(error);
     elements.completion.textContent = "Could not load the word lists.";
@@ -54,7 +58,7 @@ async function loadWords() {
   }
 }
 
-function newPuzzle() {
+function newPuzzle({ recordUrl = true, cheatAvailable = true } = {}) {
   if (!generatorWords.length || !validWords.size || !tetrominoTilings.length) return;
   stopCheat();
   const solved = makeSolvedBoard();
@@ -64,7 +68,7 @@ function newPuzzle() {
 
   // Puzzles are obtained from a solved board, so the recorded reverse sequence
   // always supplies a route back to a connected layout.
-  const folds = 6 + Math.floor(Math.random() * 4);
+  const folds = MINIMUM_FOLDS + Math.floor(Math.random() * (MAXIMUM_FOLDS - MINIMUM_FOLDS + 1));
   for (let turn = 0; turn < folds; turn += 1) {
     let move;
     do {
@@ -78,14 +82,21 @@ function newPuzzle() {
   }
 
   // Very occasionally a scramble is already connected; draw another one.
-  if (isComplete(board)) return newPuzzle();
+  if (isComplete(board)) return newPuzzle({ recordUrl, cheatAvailable });
 
+  startPuzzle(board, foldsTaken.slice().reverse(), { recordUrl, cheatAvailable });
+}
+
+function startPuzzle(board, solution, { recordUrl = false, cheatAvailable = true } = {}) {
+  stopCheat();
   state.board = board;
   state.initialBoard = board.slice();
-  state.solution = foldsTaken.slice().reverse();
+  state.solution = cheatAvailable ? solution : [];
   state.moves = 0;
   state.complete = false;
   state.selectedIndex = null;
+  state.previewIndex = null;
+  if (recordUrl) updatePuzzleUrl();
   render();
 }
 
@@ -201,6 +212,64 @@ function stopCheat() {
   cheatTimer = null;
   state.cheating = false;
   state.previewIndex = null;
+}
+
+function puzzleFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const board = decodeBoard(params.get("state"));
+  const solution = decodeSolution(params.get("m"));
+  if (!board || !solution) return null;
+  return isComplete(solution.reduce(applyFold, board)) ? { board, solution } : null;
+}
+
+function hasPuzzleUrlParameters() {
+  const params = new URLSearchParams(window.location.search);
+  return params.has("state") || params.has("m");
+}
+
+function updatePuzzleUrl() {
+  const url = new URL(window.location.href);
+  url.searchParams.set("state", encodeBoard(state.initialBoard));
+  url.searchParams.set("m", encodeSolution(state.solution));
+  window.history.replaceState(null, "", url);
+}
+
+function encodeBoard(board) {
+  return board.map((tile) => `${PALETTE.indexOf(tile.colour)}${tile.letter}`).join("");
+}
+
+function decodeBoard(token) {
+  if (!token || !/^(?:[0-3][a-z]){16}$/.test(token)) return null;
+  const board = [];
+  for (let index = 0; index < token.length; index += 2) board.push({ colour: PALETTE[Number(token[index])], letter: token[index + 1] });
+  return PALETTE.every((colour) => board.filter((tile) => tile.colour === colour).length === 4) ? board : null;
+}
+
+function encodeSolution(moves) {
+  const code = moves.reduce((value, move) => value * 8 + foldCode(move), 0);
+  return `${moves.length.toString(36)}-${code.toString(36)}`;
+}
+
+function decodeSolution(token) {
+  const match = /^([0-9a-z])-([0-9a-z]+)$/i.exec(token || "");
+  if (!match) return null;
+  const length = Number.parseInt(match[1], 36);
+  let code = Number.parseInt(match[2], 36);
+  if (!Number.isSafeInteger(code) || length < MINIMUM_FOLDS || length > MAXIMUM_FOLDS || code >= 8 ** length) return null;
+  const moves = Array(length);
+  for (let index = length - 1; index >= 0; index -= 1) {
+    moves[index] = foldFromCode(code % 8);
+    code = Math.floor(code / 8);
+  }
+  return moves;
+}
+
+function foldCode(move) {
+  return move.type === "row" ? move.index : move.index + SIZE;
+}
+
+function foldFromCode(code) {
+  return code < SIZE ? { type: "row", index: code } : { type: "column", index: code - SIZE };
 }
 
 function render(animate = false) {
