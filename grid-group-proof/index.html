@@ -5,13 +5,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#edf2f5">
-  <title>Block-Rotation Puzzles</title>
+  <title>Corner Cases</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
   <main class="page">
     <article class="article">
+      <div class="masthead">
+        <h1>Corner Cases</h1>
+        <p class="subtitle">Which block-rotation puzzles are unconstrained (and why)?</p>
+      </div>
+
       <p>Imagine a puzzle — it consists of a 4×4 grid of coloured blocks that contain letters. It has little knobs
         that allow you to rotate any 2×2 group of blocks.</p>
 
@@ -84,7 +89,7 @@
       </figure>
 
       <p>Your objective is to rearrange the blocks in such a way that each group of blocks of the same colour is
-        connected and forms a word. This example is pretty easy! If you'd like to try some harder
+        connected and forms a word. This example is pretty easy. If you'd like to try some harder
         puzzles of this type before continuing, I suggest <a
           href="https://michael-albert-dun.github.io/tintangle/wordtangle/">Wordtangle</a>.</p>
 
@@ -109,12 +114,12 @@
             shifts whole rows and columns instead, and <a
               href="https://www.chiark.greenend.org.uk/~sgtatham/puzzles/js/twiddle.html">Twiddle</a>
             rotates 2×2 (or larger) blocks, just like here — Tatham says he first met that move inside a puzzle from
-            Metroid Prime 2. Turning blocks is, of course, also basically what a Rubik's Cube does, just on the faces
+            Metroid Prime 2. Turning blocks is, of course, also basically what a Rubik's Cube does, but on the faces
             of a cube instead of a flat grid.
           </p>
 
-          <p>The mathematical version of this rotate-a-block puzzle was formalised recently, in Thomas Lam's
-            2022 paper <a href="https://arxiv.org/abs/2211.16787">"Solution to the Number Rotation Puzzle"</a>.</p>
+          <p>Thomas Lam formalised the mathematical version of this rotate-a-block puzzle in his 2022 paper
+            <a href="https://arxiv.org/abs/2211.16787">"Solution to the Number Rotation Puzzle"</a>.</p>
         </div>
       </details>
 
@@ -181,11 +186,14 @@
       <details class="section">
         <summary>First steps</summary>
         <div class="section-body">
-          <p>To start with we're going to look at the corresponding question for a 3×3 grid. Why? Well, because
-            it's likely to be easier, and hopefully when we're done we might understand enough to handle the 4×4
-            case as well<span class="footnote" tabindex="0" data-hint="That is certainly true.">*</span>.</p>
+          <p>To start with we're going to look at the corresponding question for a 3×3 grid. Why 3×3? Three turns
+            out to be a magic number: a lot of interesting structure in problems like this first shows up exactly
+            when you move from two objects to three — with two things you can only swap them or leave them alone,
+            but three is where real cycles, and real complexity, begin. It's also a smaller board to reason about,
+            and hopefully when we're done we might understand enough to handle the 4×4 case as well<span
+              class="footnote" tabindex="0" data-hint="That is certainly true.">*</span>.</p>
 
-          <p>So, we have a 3×3 grid of blocks like this one:</p>
+          <p>Here's a 3×3 grid of blocks:</p>
 
           <figure class="board-figure">
             <div class="mini-board" style="--board-size:3"
@@ -223,13 +231,13 @@
             </div>
           </figure>
 
-          <p>But, we want to talk about <em>all</em> possible arrangements and <em>all</em> possible solutions. So
-            it makes sense to forget about the actual contents of the blocks and just focus on what the rotations
-            are actually doing.</p>
+          <p>We actually want to talk about <em>all</em> possible arrangements and <em>all</em> possible solutions,
+            so it makes sense to forget about the contents of the blocks and focus on what the rotations
+            do.</p>
 
-          <p>A rotation simply changes the <em>positions</em> of some of the blocks,
-            and a more complex sequence of rotations is doing the same thing. So keeping track of positions is
-            likely to be helpful. We can represent the starting position simply as</p>
+          <p>A rotation simply changes the <em>positions</em> of some of the blocks, and a more complex sequence of
+            rotations does the same thing. Keeping track of positions is likely to be helpful. We can represent
+            the starting position simply as</p>
 
           <figure class="board-figure">
             <div class="mini-board" style="--board-size:3"
@@ -286,7 +294,7 @@
             </div>
           </figure>
 
-          <p>So position 1 goes to position 3, 2 goes to 5, 3 goes to 6 … there must be a better way to write
+          <p>Position 1 goes to position 3, 2 goes to 5, 3 goes to 6 … there must be a better way to write
             that down.</p>
 
           <p>One way is to list the destinations of positions 1 through 9 in a single row, as
@@ -302,7 +310,7 @@
       <details class="section">
         <summary>Names and notation</summary>
         <div class="section-body">
-          <p>It's going to get tiresome to keep saying things like "rotate the upper left corner". So let's agree
+          <p>It's going to get tiresome to keep saying things like "rotate the upper left corner". Let's agree
             that <span class="notation">A</span> stands for that, and <span class="notation">B</span>,
             <span class="notation">C</span>, and <span class="notation">D</span> stand for rotating the upper
             right, lower left, and lower right corners. It's also useful to note that doing
@@ -351,7 +359,7 @@
             </tbody>
           </table>
 
-          <p>And, we can see what happens when we apply them one after the other.</p>
+          <p>We can see what happens when we apply them one after the other.</p>
 
           <figure class="board-figure">
             <div class="mini-board op-board" style="--board-size:3"
@@ -397,9 +405,9 @@
             </div>
           </figure>
 
-          <p>Now try out the sequence <span class="notation">A D a d</span>. It does something interesting — it
+          <p>Try out the sequence <span class="notation">A D a d</span>. It does something interesting — it
             leaves the first and third columns alone, and cycles the middle column down one space (with the 8
-            floating back to the top). Naturally enough, this is called a 3-cycle. Sequences of moves like this,
+            floating back to the top). This is called a 3-cycle. Sequences of moves like this,
             that make different and structured changes in a puzzle, are often a key to its solution. If you've
             ever done Rubik's cube at all seriously you know this already!</p>
         </div>
@@ -412,21 +420,20 @@
 
           <h3>Secret 1</h3>
 
-          <p>I'm a mathematician. Well, ok, I suspect that's probably not much of a secret (or at least not a
-            surprising one). But,</p>
+          <p>I'm a mathematician. Not much of a secret, probably. But,</p>
 
           <h3>Secret 2</h3>
 
           <p>You're probably a mathematician too. Or at least mathematician-adjacent. If you've got this far then
-            you're interested in puzzles and how they work. And, doing the kind of puzzles we're talking about
+            you're interested in puzzles and how they work. Doing the kind of puzzles we're talking about
             here, as well as many other popular ones such as
             <a href="https://en.wikipedia.org/wiki/Sudoku">sudoku</a>,
             <a href="https://en.wikipedia.org/wiki/KenKen">ken ken</a>, and
             <a href="https://en.wikipedia.org/wiki/Kakuro">many</a>
             <a href="https://en.wikipedia.org/wiki/Nonogram">other</a>
             <a href="https://en.wikipedia.org/wiki/Slitherlink">logic</a>
-            <a href="https://en.wikipedia.org/wiki/Masyu">puzzles</a>, is indistinguishable from mathematics. And,
-            what I'm explaining here really <em>is</em> mathematics. If you want to see just how deep that rabbit
+            <a href="https://en.wikipedia.org/wiki/Masyu">puzzles</a>, is indistinguishable from mathematics. What
+            I'm explaining here really <em>is</em> mathematics. If you want to see just how deep that rabbit
             hole goes, take a look at the puzzles hosted at
             <a href="https://www.logic-masters.de/">logic-masters.de</a>.</p>
 
@@ -516,8 +523,8 @@
             </div>
           </figure>
 
-          <p>This is the basis for a general rule: any symmetric version of a transformation that we can achieve,
-            is also achievable.</p>
+          <p>This is the basis for a general rule: whatever symmetric version of a move we want, we can do that
+            too.</p>
         </div>
       </details>
 
@@ -530,7 +537,7 @@
             three-cycle that moves three specific positions, then we also have <em>every</em> three-cycle that
             moves just those three positions (since x has to go to y or z, and that determines the third one).</p>
 
-          <p>But, so far we only have the three-cycles that move the middle column. Can we get more? Yes — this is
+          <p>So far we only have the three-cycles that move the middle column. Can we get more? Yes — this is
             a standard trick. Imagine we do some moves, then we do the <span class="notation">A D a d</span>
             sequence (cycling the middle column) and then we undo the moves we originally did (do them again in
             reverse order, swapping each of <span class="notation">A</span>/<span class="notation">a</span>,
@@ -643,7 +650,7 @@
           </div>
 
           <p>Can we catch them all? Starting from the central column, apply some operations and see how many of
-            the 84 sets of three you can turn up.</p>
+            the 84 sets of three you can find (when you find a type, it counts as finiding all the sets of that type).</p>
 
           <figure class="board-figure">
             <div class="mini-board op-board op-board-discs" style="--board-size:3"
@@ -722,6 +729,261 @@
               </div>
             </div>
           </figure>
+
+          <p>I hope you caught them all — if not, keep trying. Or trust me — you can.</p>
+        </div>
+      </details>
+
+      <details class="section">
+        <summary>Three's a crowd</summary>
+        <div class="section-body">
+          <p>Triples are nice, but it turns out that we can't achieve <em>all</em> permutations using just
+            three-cycles (don't ask). But two-cycles (usually called <em>transpositions</em>), that just exchange
+            two elements, are a different story. Imagine we could use all the transpositions. That's a pretty easy
+            puzzle to solve — rearrange the grid below so that 1–9 are in the correct order.</p>
+
+          <figure class="board-figure">
+            <div class="mini-board swap-board" style="--board-size:3"
+              aria-label="A 3 by 3 board numbered 1 to 9, shuffled. Click any two tiles to swap them until they read 1 to 9 in order.">
+              <button type="button" class="mini-tile swap-tile" data-index="0" role="img" style="--colour:#dbe3ea"></button>
+              <button type="button" class="mini-tile swap-tile" data-index="1" role="img" style="--colour:#dbe3ea"></button>
+              <button type="button" class="mini-tile swap-tile" data-index="2" role="img" style="--colour:#dbe3ea"></button>
+              <button type="button" class="mini-tile swap-tile" data-index="3" role="img" style="--colour:#dbe3ea"></button>
+              <button type="button" class="mini-tile swap-tile" data-index="4" role="img" style="--colour:#dbe3ea"></button>
+              <button type="button" class="mini-tile swap-tile" data-index="5" role="img" style="--colour:#dbe3ea"></button>
+              <button type="button" class="mini-tile swap-tile" data-index="6" role="img" style="--colour:#dbe3ea"></button>
+              <button type="button" class="mini-tile swap-tile" data-index="7" role="img" style="--colour:#dbe3ea"></button>
+              <button type="button" class="mini-tile swap-tile" data-index="8" role="img" style="--colour:#dbe3ea"></button>
+            </div>
+            <button type="button" class="mini-reset-button swap-shuffle">New shuffle</button>
+            <p class="swap-complete" aria-live="polite"></p>
+          </figure>
+
+          <p>The reason this is easy is that there are any number of good strategies: switch 1 with whatever is in
+            its place, then switch 2 with whatever is in its place, …</p>
+
+          <p>We'd like to move just two elements, but the basic operations we have (the corner rotations) move
+            four, and we've concentrated on getting others that move three. It's time, I'm afraid, for a bit of
+            abstract thinking — and first I want to think about the other direction: suppose that I knew how to
+            move triples and pairs, how could I move four elements using just one pair? Imagine we have four
+            elements w, x, y, and z. Let's give ourselves the pair <span class="notation">(y z)</span>, any triples
+            we like, and try to get <span class="notation">(w x y z)</span>. Can we find some triple then
+            <span class="notation">(y z)</span> to produce <span class="notation">(w x y z)</span>? Our triple
+            should send w to x (which will be left alone by <span class="notation">(y z)</span>). It should send x
+            to z so that when we then apply <span class="notation">(y z)</span> it will go to y where we want it.
+            Look at <span class="notation">(w x z)</span> <span class="notation">(y z)</span>. We've set it up so
+            that this sends w to x and x to y. Where does it send y — the first part leaves it alone so it goes to
+            z. And where does it send z — to w in the first part and then it's left alone, so we get exactly
+            <span class="notation">(w x y z)</span>.</p>
+
+          <p class="equation"><span class="notation">(w x z)</span> <span class="notation">(y z)</span> =
+            <span class="notation">(w x y z)</span></p>
+
+          <p>If we undo the <span class="notation">(w x z)</span> on the left with
+            <span class="notation">(z x w)</span> we get</p>
+
+          <div class="equation-chain">
+            <span class="equation-lhs"><span class="notation">(y z)</span></span>
+            <span class="equation-eq">=</span>
+            <span class="equation-rhs"><span class="notation">(z x w)</span> <span class="notation">(w x z)</span>
+              <span class="notation">(y z)</span></span>
+            <span class="equation-lhs"></span>
+            <span class="equation-eq">=</span>
+            <span class="equation-rhs"><span class="notation">(z x w)</span>
+              <span class="notation">(w x y z)</span></span>
+          </div>
+
+          <p>and now we can plug in some numbers we know work (like <span class="notation">(w x y z)</span> =
+            <span class="notation">(1 2 5 4)</span>) to produce the
+            <span class="notation">(5 4)</span> transposition. Or, we could just search for three-cycles that
+            combine with <span class="notation">A</span> to produce a transposition. Pick three tiles below, in
+            order, to build a triple of your choosing — it's applied the moment you've clicked a third. Then apply
+            <span class="notation">A</span> on top and see what you get.</p>
+
+          <figure class="board-figure">
+            <div class="mini-board triple-a-board" style="--board-size:3"
+              aria-label="A 3 by 3 board numbered 1 to 9. Click three tiles in order to build a triple, then apply A and see the result.">
+              <button type="button" class="mini-tile triple-a-tile" data-index="0" role="img" style="--colour:#dbe3ea">1</button>
+              <button type="button" class="mini-tile triple-a-tile" data-index="1" role="img" style="--colour:#dbe3ea">2</button>
+              <button type="button" class="mini-tile triple-a-tile" data-index="2" role="img" style="--colour:#dbe3ea">3</button>
+              <button type="button" class="mini-tile triple-a-tile" data-index="3" role="img" style="--colour:#dbe3ea">4</button>
+              <button type="button" class="mini-tile triple-a-tile" data-index="4" role="img" style="--colour:#dbe3ea">5</button>
+              <button type="button" class="mini-tile triple-a-tile" data-index="5" role="img" style="--colour:#dbe3ea">6</button>
+              <button type="button" class="mini-tile triple-a-tile" data-index="6" role="img" style="--colour:#dbe3ea">7</button>
+              <button type="button" class="mini-tile triple-a-tile" data-index="7" role="img" style="--colour:#dbe3ea">8</button>
+              <button type="button" class="mini-tile triple-a-tile" data-index="8" role="img" style="--colour:#dbe3ea">9</button>
+            </div>
+
+            <div class="op-panels">
+              <button type="button" class="op-preset-button triple-a-apply" disabled>Apply A</button>
+              <button type="button" class="mini-reset-button triple-a-reset">Reset</button>
+            </div>
+
+            <div class="op-status">
+              <p>Triple chosen: <span class="notation triple-a-triple">(none yet)</span></p>
+              <p>Current permutation: <span class="notation triple-a-result">(no change)</span></p>
+            </div>
+            <p class="swap-complete triple-a-win" aria-live="polite"></p>
+          </figure>
+
+          <p>Now we can play the same game with pairs as we played with triples before — can you find a
+            representative of every type of pair?</p>
+
+          <figure class="board-figure">
+            <div class="mini-board op-board op-board-discs" style="--board-size:3"
+              aria-label="A 3 by 3 board with two marked discs, starting at the transposition we just found. Apply operations to see which types of pair you can reach.">
+              <div class="mini-tile" data-index="0" role="img" style="--colour:#dbe3ea"></div>
+              <div class="mini-tile" data-index="1" role="img" style="--colour:#dbe3ea"></div>
+              <div class="mini-tile" data-index="2" role="img" style="--colour:#dbe3ea"></div>
+              <div class="mini-tile" data-index="3" role="img" style="--colour:#dbe3ea"><span class="tile-disc"></span></div>
+              <div class="mini-tile" data-index="4" role="img" style="--colour:#dbe3ea"><span class="tile-disc"></span></div>
+              <div class="mini-tile" data-index="5" role="img" style="--colour:#dbe3ea"></div>
+              <div class="mini-tile" data-index="6" role="img" style="--colour:#dbe3ea"></div>
+              <div class="mini-tile" data-index="7" role="img" style="--colour:#dbe3ea"></div>
+              <div class="mini-tile" data-index="8" role="img" style="--colour:#dbe3ea"></div>
+            </div>
+
+            <div class="op-buttons" role="group" aria-label="Apply an operation">
+              <div class="op-pair">
+                <button type="button" class="op-button" data-op="A" aria-label="Apply A: rotate the upper-left corner location clockwise">A</button>
+                <span class="op-slash" aria-hidden="true">/</span>
+                <button type="button" class="op-button" data-op="a" aria-label="Apply a: rotate the upper-left corner location anticlockwise">a</button>
+              </div>
+              <div class="op-pair">
+                <button type="button" class="op-button" data-op="B" aria-label="Apply B: rotate the upper-right corner location clockwise">B</button>
+                <span class="op-slash" aria-hidden="true">/</span>
+                <button type="button" class="op-button" data-op="b" aria-label="Apply b: rotate the upper-right corner location anticlockwise">b</button>
+              </div>
+              <div class="op-pair">
+                <button type="button" class="op-button" data-op="C" aria-label="Apply C: rotate the lower-left corner location clockwise">C</button>
+                <span class="op-slash" aria-hidden="true">/</span>
+                <button type="button" class="op-button" data-op="c" aria-label="Apply c: rotate the lower-left corner location anticlockwise">c</button>
+              </div>
+              <div class="op-pair">
+                <button type="button" class="op-button" data-op="D" aria-label="Apply D: rotate the lower-right corner location clockwise">D</button>
+                <span class="op-slash" aria-hidden="true">/</span>
+                <button type="button" class="op-button" data-op="d" aria-label="Apply d: rotate the lower-right corner location anticlockwise">d</button>
+              </div>
+            </div>
+            <button type="button" class="mini-reset-button op-reset">Reset</button>
+
+            <div class="catch-status">
+              <p>Current pair: <span class="dot-grid catch-current"></span></p>
+              <p>Found <span class="notation catch-count">1</span> of 8 types so far — click a found one to jump
+                there:</p>
+              <div class="dot-gallery">
+                <div class="dot-gallery-group">
+                  <p class="dot-gallery-title">Orbits of size 8</p>
+                  <div class="dot-gallery-row">
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,2" disabled aria-label="Jump to the type containing positions 1, 2"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,6" disabled aria-label="Jump to the type containing positions 1, 6"></button>
+                  </div>
+                </div>
+                <div class="dot-gallery-group">
+                  <p class="dot-gallery-title">Orbits of size 4</p>
+                  <div class="dot-gallery-row">
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,3" disabled aria-label="Jump to the type containing positions 1, 3"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,5" disabled aria-label="Jump to the type containing positions 1, 5"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="2,4" disabled aria-label="Jump to the type containing positions 2, 4"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="2,5" disabled aria-label="Jump to the type containing positions 2, 5"></button>
+                  </div>
+                </div>
+                <div class="dot-gallery-group">
+                  <p class="dot-gallery-title">Orbits of size 2</p>
+                  <div class="dot-gallery-row">
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,9" disabled aria-label="Jump to the type containing positions 1, 9"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="2,8" disabled aria-label="Jump to the type containing positions 2, 8"></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </figure>
+
+          <p>Congratulations (or trust me again).</p>
+        </div>
+      </details>
+
+      <details class="section">
+        <summary>The speedrun (a digression)</summary>
+        <div class="section-body">
+          <p>Here's a fun parallel. Every one of the 43 quintillion configurations of a Rubik's Cube can be solved
+            in at most 20 moves — a fact known, only half-jokingly, as God's Number. Nobody actually knew this for
+            certain until 2010, when Tomas Rokicki and colleagues finally nailed it down using about 35 CPU-years
+            of computing time that Google donated for the purpose.</p>
+
+          <p>What we've shown here is a much easier question: that every rearrangement is reachable at all, full
+            stop, with no move count attached. "Is it possible?" and "what's the fewest moves it ever takes?" are
+            genuinely different problems, and the second one is usually much harder. Finding this puzzle's God
+            Number would not be too hard — there are only 9! = 362,880 configurations to check, but there might
+            be some interesting related problems in larger grids.</p>
+        </div>
+      </details>
+
+      <details class="section">
+        <summary>We're done?</summary>
+        <div class="section-body">
+          <p>We haven't got a recipe, but we know that we can somehow exchange any pair of positions (and leave
+            all the rest fixed) and that's enough to achieve any rearrangement of the positions. That deserves to
+            be called a theorem:</p>
+
+          <p class="theorem"><span class="theorem-label">Theorem.</span> Every rearrangement of the cells of a
+            3×3 grid can be achieved using rotations of its 2×2 subgrids.</p>
+
+          <p>But wasn't the problem supposed to be about 4×4 grids? Yes — but remember the third secret (and
+            think a little more).</p>
+
+          <p>Think about the 4×4 grid as four overlapping 3×3 grids. Surely we can use our power there to boost
+            it up to the 4×4 case? In lots of cases we could just do it directly, but there are some irritating
+            edge cases. If we want to move position 1 to the final row or final column, we can't just use the top
+            left corner. But we can exchange 1 with any position that lies in all four grids, then exchange that
+            position with any other. Redo the first exchange and you've swapped 1 with whatever position you like.
+            We can do similar things for all the edge squares. Once again, we can do all exchanges and hence all
+            permutations.</p>
+
+          <p>And why stop at 4? For 5×5 we have overlapping 4×4 grids and then the same trick. For 6×6,
+            overlapping 5×5's etc.</p>
+
+          <p>Another approach: adjacent exchanges are enough to generate all exchanges, and in any grid bigger
+            than 3×3 you can always perform an adjacent exchange inside some 3×3 subgrid. But that's probably
+            enough.</p>
+        </div>
+      </details>
+
+      <details class="section">
+        <summary>References</summary>
+        <div class="section-body">
+          <ul class="reference-list">
+            <li><a href="block_rotation_puzzles.pdf">The full write-up</a> — the same proof done properly: every
+              claim is either proved from scratch or explicitly flagged as a cited classical fact, rather than
+              hand-waved as it sometimes is above.</li>
+            <li><a href="https://arxiv.org/abs/2211.16787">Thomas Lam, "Solution to the Number Rotation
+              Puzzle"</a> — the paper this whole investigation is a variation on. It handles other sizes of
+              blocks and grids, and concentrates on actual strategies for solving the puzzle rather than just
+              proving it's solvable.</li>
+            <li><a href="https://en.wikipedia.org/wiki/15_puzzle">The 15 Puzzle</a> — the real history of the
+              puzzle this whole family descends from (it wasn't Sam Loyd).</li>
+            <li><a href="https://www.jaapsch.net/puzzles/graphpuzz.htm">Jaap Scherphuis, "Rotational Puzzles on
+              Graphs"</a> — the general theory connecting sliding and rotation puzzles.</li>
+            <li><a href="https://www.chiark.greenend.org.uk/~sgtatham/puzzles/">Simon Tatham's Portable Puzzle
+              Collection</a> — playable implementations of the sliding and rotation puzzle families, including
+              Fifteen, Sixteen, and Twiddle.</li>
+            <li>Sudoku, KenKen, Kakuro, Nonogram, Slitherlink, Masyu, and <a
+              href="https://www.logic-masters.de/">logic-masters.de</a> — other popular logic puzzles, if you'd
+              like to see how deep the rabbit hole goes.</li>
+            <li><a href="https://michael-albert-dun.github.io/tintangle/">Tintangle</a> and <a
+              href="https://michael-albert-dun.github.io/tintangle/wordtangle/">Wordtangle</a> — the puzzles that
+              started this whole investigation, and more generally <a
+              href="https://michael-albert-dun.github.io/">michael-albert-dun.github.io</a>.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="section">
+        <summary>Acknowledgements</summary>
+        <div class="section-body">
+          <p>I thank Claude (Anthropic), who provided extensive assistance throughout this project: verifying
+            every computational claim, helping develop the arguments on this page, tracking down the references
+            above, and building every one of the interactive demos.</p>
         </div>
       </details>
     </article>
@@ -729,6 +991,8 @@
   <script src="src/mini-board.js" defer></script>
   <script src="src/dot-grids.js" defer></script>
   <script src="src/operations-panel.js" defer></script>
+  <script src="src/swap-board.js" defer></script>
+  <script src="src/triple-a-demo.js" defer></script>
 </body>
 
 </html>
