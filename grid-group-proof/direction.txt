@@ -84,3 +84,20 @@ Imagine picking up the puzzle and giving it a quarter-turn clockwise before begi
 
 This is the basis for a general rule: any symmetric version of a transformation that we can achieve, is also achievable.
 
+# All the threes
+
+An interesting thing about a three-cycle (x y z) is that if you apply it twice you get (x z y), and if you apply it three times of course you get back to ''nothing happens''. But what this means is that if we can work out somehow to produce a three-cycle that moves three specific positions, then we also have *every* three cycle that moves just those three positions (since x has to go to y or z, and that determines the third one).
+
+But, so far we only have the three-cycles that move the central row or central column. Can we get more? Yes -- this is a standard trick. Imagine we do some moves, then we do the ADad sequence (cycling the middle row) and then we undo the moves we originally did (do them again in reverse order interchanging the Aa, Bb, Cc and Dd pairs). What will we have moved then? Well, try it out.
+
+{{ Demo to match this }}
+
+We get another three-cycle that moves exactly the positions that were moved into the central column by our initial sequence of moves. And so we have all the three-cycles there. And also on all the symmetric versions of ``there'' obtained by rotating and flipping  the square.
+
+There are 84 different sets of three positions in the square, but up to symmetry only 16:
+
+{{Illustrate them in a style similar to the .tex paper}}
+
+Can we catch them all?
+
+{{Demo - start with the single central column, allow choice of operations, add all images. Now allow the same from the new known set of representatives -- perhaps in images show the 'actual' image then with an arrow to its representative. This'll need some work, just start simply and we'll refine it.}}

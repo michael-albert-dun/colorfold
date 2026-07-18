@@ -520,9 +520,214 @@
             is also achievable.</p>
         </div>
       </details>
+
+      <details class="section">
+        <summary>All the threes</summary>
+        <div class="section-body">
+          <p>An interesting thing about a three-cycle <span class="notation">(x y z)</span> is that if you apply
+            it twice you get <span class="notation">(x z y)</span>, and if you apply it three times of course you
+            get back to "nothing happens". But what this means is that if we can work out somehow to produce a
+            three-cycle that moves three specific positions, then we also have <em>every</em> three-cycle that
+            moves just those three positions (since x has to go to y or z, and that determines the third one).</p>
+
+          <p>But, so far we only have the three-cycles that move the middle column. Can we get more? Yes — this is
+            a standard trick. Imagine we do some moves, then we do the <span class="notation">A D a d</span>
+            sequence (cycling the middle column) and then we undo the moves we originally did (do them again in
+            reverse order, swapping each of <span class="notation">A</span>/<span class="notation">a</span>,
+            <span class="notation">B</span>/<span class="notation">b</span>,
+            <span class="notation">C</span>/<span class="notation">c</span> and
+            <span class="notation">D</span>/<span class="notation">d</span> for its partner). What will we have
+            moved then? Well, try it out.</p>
+
+          <figure class="board-figure">
+            <div class="mini-board op-board" style="--board-size:3"
+              aria-label="A 3 by 3 board numbered 1 to 9. Choose some setup moves, cycle the middle column, then undo the setup.">
+              <div class="mini-tile" data-index="0" role="img" style="--colour:#dbe3ea">1</div>
+              <div class="mini-tile" data-index="1" role="img" style="--colour:#dbe3ea">2</div>
+              <div class="mini-tile" data-index="2" role="img" style="--colour:#dbe3ea">3</div>
+              <div class="mini-tile" data-index="3" role="img" style="--colour:#dbe3ea">4</div>
+              <div class="mini-tile" data-index="4" role="img" style="--colour:#dbe3ea">5</div>
+              <div class="mini-tile" data-index="5" role="img" style="--colour:#dbe3ea">6</div>
+              <div class="mini-tile" data-index="6" role="img" style="--colour:#dbe3ea">7</div>
+              <div class="mini-tile" data-index="7" role="img" style="--colour:#dbe3ea">8</div>
+              <div class="mini-tile" data-index="8" role="img" style="--colour:#dbe3ea">9</div>
+            </div>
+
+            <div class="op-panels">
+              <div class="op-panel">
+                <p class="op-panel-title">Setup</p>
+                <div class="op-buttons" role="group" aria-label="Choose some setup moves">
+                  <div class="op-pair">
+                    <button type="button" class="op-setup-button" data-op="A" aria-label="Apply A: rotate the upper-left corner location clockwise">A</button>
+                    <span class="op-slash" aria-hidden="true">/</span>
+                    <button type="button" class="op-setup-button" data-op="a" aria-label="Apply a: rotate the upper-left corner location anticlockwise">a</button>
+                  </div>
+                  <div class="op-pair">
+                    <button type="button" class="op-setup-button" data-op="B" aria-label="Apply B: rotate the upper-right corner location clockwise">B</button>
+                    <span class="op-slash" aria-hidden="true">/</span>
+                    <button type="button" class="op-setup-button" data-op="b" aria-label="Apply b: rotate the upper-right corner location anticlockwise">b</button>
+                  </div>
+                  <div class="op-pair">
+                    <button type="button" class="op-setup-button" data-op="C" aria-label="Apply C: rotate the lower-left corner location clockwise">C</button>
+                    <span class="op-slash" aria-hidden="true">/</span>
+                    <button type="button" class="op-setup-button" data-op="c" aria-label="Apply c: rotate the lower-left corner location anticlockwise">c</button>
+                  </div>
+                  <div class="op-pair">
+                    <button type="button" class="op-setup-button" data-op="D" aria-label="Apply D: rotate the lower-right corner location clockwise">D</button>
+                    <span class="op-slash" aria-hidden="true">/</span>
+                    <button type="button" class="op-setup-button" data-op="d" aria-label="Apply d: rotate the lower-right corner location anticlockwise">d</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="op-panel">
+                <p class="op-panel-title">Cycle</p>
+                <button type="button" class="op-preset-button" data-preset="ADad">Apply A D a d</button>
+              </div>
+
+              <div class="op-panel">
+                <p class="op-panel-title">Undo</p>
+                <button type="button" class="op-undo-button">Undo setup moves</button>
+              </div>
+            </div>
+
+            <button type="button" class="mini-reset-button op-reset">Reset</button>
+
+            <div class="op-status">
+              <p>Sequence applied: <span class="notation op-sequence">(none yet)</span></p>
+              <p>Current permutation: <span class="notation op-cycles">(no change)</span></p>
+            </div>
+          </figure>
+
+          <p>We get another three-cycle that moves exactly the positions that were moved into the central column
+            by our initial sequence of moves. And so we have all the three-cycles there. And also on all the
+            symmetric versions of "there" obtained by rotating and flipping the square.</p>
+
+          <p>There are 84 different sets of three positions in the square, but up to symmetry only 16.
+            These are shown below divided up according to how many different versions of each one there
+            are (the different versions are called their orbits) after applying the symmetries of the square. 
+          </p>
+
+          <div class="dot-gallery">
+            <div class="dot-gallery-group">
+              <p class="dot-gallery-title">Orbits of size 8</p>
+              <div class="dot-gallery-row">
+                <div class="dot-grid" data-cells="1,2,5"></div>
+                <div class="dot-grid" data-cells="1,2,6"></div>
+                <div class="dot-grid" data-cells="1,2,7"></div>
+                <div class="dot-grid" data-cells="1,2,8"></div>
+                <div class="dot-grid" data-cells="1,2,9"></div>
+                <div class="dot-grid" data-cells="1,5,6"></div>
+              </div>
+            </div>
+            <div class="dot-gallery-group">
+              <p class="dot-gallery-title">Orbits of size 4</p>
+              <div class="dot-gallery-row">
+                <div class="dot-grid" data-cells="1,2,3"></div>
+                <div class="dot-grid" data-cells="1,2,4"></div>
+                <div class="dot-grid" data-cells="1,3,5"></div>
+                <div class="dot-grid" data-cells="1,3,7"></div>
+                <div class="dot-grid" data-cells="1,3,8"></div>
+                <div class="dot-grid" data-cells="1,6,8"></div>
+                <div class="dot-grid" data-cells="2,4,5"></div>
+                <div class="dot-grid" data-cells="2,4,6"></div>
+              </div>
+            </div>
+            <div class="dot-gallery-group">
+              <p class="dot-gallery-title">Orbits of size 2</p>
+              <div class="dot-gallery-row">
+                <div class="dot-grid" data-cells="1,5,9"></div>
+                <div class="dot-grid" data-cells="4,5,6"></div>
+              </div>
+            </div>
+          </div>
+
+          <p>Can we catch them all? Starting from the central column, apply some operations and see how many of
+            the 84 sets of three you can turn up.</p>
+
+          <figure class="board-figure">
+            <div class="mini-board op-board op-board-discs" style="--board-size:3"
+              aria-label="A 3 by 3 board with three marked discs. Apply operations to see which sets of three positions you can reach from the central column.">
+              <div class="mini-tile" data-index="0" role="img" style="--colour:#dbe3ea"></div>
+              <div class="mini-tile" data-index="1" role="img" style="--colour:#dbe3ea"><span class="tile-disc"></span></div>
+              <div class="mini-tile" data-index="2" role="img" style="--colour:#dbe3ea"></div>
+              <div class="mini-tile" data-index="3" role="img" style="--colour:#dbe3ea"></div>
+              <div class="mini-tile" data-index="4" role="img" style="--colour:#dbe3ea"><span class="tile-disc"></span></div>
+              <div class="mini-tile" data-index="5" role="img" style="--colour:#dbe3ea"></div>
+              <div class="mini-tile" data-index="6" role="img" style="--colour:#dbe3ea"></div>
+              <div class="mini-tile" data-index="7" role="img" style="--colour:#dbe3ea"><span class="tile-disc"></span></div>
+              <div class="mini-tile" data-index="8" role="img" style="--colour:#dbe3ea"></div>
+            </div>
+
+            <div class="op-buttons" role="group" aria-label="Apply an operation">
+              <div class="op-pair">
+                <button type="button" class="op-button" data-op="A" aria-label="Apply A: rotate the upper-left corner location clockwise">A</button>
+                <span class="op-slash" aria-hidden="true">/</span>
+                <button type="button" class="op-button" data-op="a" aria-label="Apply a: rotate the upper-left corner location anticlockwise">a</button>
+              </div>
+              <div class="op-pair">
+                <button type="button" class="op-button" data-op="B" aria-label="Apply B: rotate the upper-right corner location clockwise">B</button>
+                <span class="op-slash" aria-hidden="true">/</span>
+                <button type="button" class="op-button" data-op="b" aria-label="Apply b: rotate the upper-right corner location anticlockwise">b</button>
+              </div>
+              <div class="op-pair">
+                <button type="button" class="op-button" data-op="C" aria-label="Apply C: rotate the lower-left corner location clockwise">C</button>
+                <span class="op-slash" aria-hidden="true">/</span>
+                <button type="button" class="op-button" data-op="c" aria-label="Apply c: rotate the lower-left corner location anticlockwise">c</button>
+              </div>
+              <div class="op-pair">
+                <button type="button" class="op-button" data-op="D" aria-label="Apply D: rotate the lower-right corner location clockwise">D</button>
+                <span class="op-slash" aria-hidden="true">/</span>
+                <button type="button" class="op-button" data-op="d" aria-label="Apply d: rotate the lower-right corner location anticlockwise">d</button>
+              </div>
+            </div>
+            <button type="button" class="mini-reset-button op-reset">Reset</button>
+
+            <div class="catch-status">
+              <p>Current triple: <span class="dot-grid catch-current"></span></p>
+              <p>Found <span class="notation catch-count">1</span> of 16 types so far — click a found one to jump
+                there:</p>
+              <div class="dot-gallery">
+                <div class="dot-gallery-group">
+                  <p class="dot-gallery-title">Orbits of size 8</p>
+                  <div class="dot-gallery-row">
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,2,5" disabled aria-label="Jump to the type containing positions 1, 2, 5"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,2,6" disabled aria-label="Jump to the type containing positions 1, 2, 6"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,2,7" disabled aria-label="Jump to the type containing positions 1, 2, 7"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,2,8" disabled aria-label="Jump to the type containing positions 1, 2, 8"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,2,9" disabled aria-label="Jump to the type containing positions 1, 2, 9"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,5,6" disabled aria-label="Jump to the type containing positions 1, 5, 6"></button>
+                  </div>
+                </div>
+                <div class="dot-gallery-group">
+                  <p class="dot-gallery-title">Orbits of size 4</p>
+                  <div class="dot-gallery-row">
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,2,3" disabled aria-label="Jump to the type containing positions 1, 2, 3"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,2,4" disabled aria-label="Jump to the type containing positions 1, 2, 4"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,3,5" disabled aria-label="Jump to the type containing positions 1, 3, 5"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,3,7" disabled aria-label="Jump to the type containing positions 1, 3, 7"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,3,8" disabled aria-label="Jump to the type containing positions 1, 3, 8"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,6,8" disabled aria-label="Jump to the type containing positions 1, 6, 8"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="2,4,5" disabled aria-label="Jump to the type containing positions 2, 4, 5"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="2,4,6" disabled aria-label="Jump to the type containing positions 2, 4, 6"></button>
+                  </div>
+                </div>
+                <div class="dot-gallery-group">
+                  <p class="dot-gallery-title">Orbits of size 2</p>
+                  <div class="dot-gallery-row">
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="1,5,9" disabled aria-label="Jump to the type containing positions 1, 5, 9"></button>
+                    <button type="button" class="dot-grid catch-type-grid" data-cells="4,5,6" disabled aria-label="Jump to the type containing positions 4, 5, 6"></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </figure>
+        </div>
+      </details>
     </article>
   </main>
   <script src="src/mini-board.js" defer></script>
+  <script src="src/dot-grids.js" defer></script>
   <script src="src/operations-panel.js" defer></script>
 </body>
 

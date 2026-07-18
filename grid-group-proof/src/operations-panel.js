@@ -8,17 +8,34 @@ function initOperationsPanel(boardElement) {
   const figure = boardElement.closest("figure");
   const tiles = [...boardElement.querySelectorAll(".mini-tile")];
   const size = Math.round(Math.sqrt(tiles.length));
-  const initialBoard = tiles.map((tile) => tile.textContent.trim());
+  const discMode = boardElement.classList.contains("op-board-discs");
+  const initialBoard = discMode
+    ? tiles.map((tile) => (tile.querySelector(".tile-disc") ? "1" : "0"))
+    : tiles.map((tile) => tile.textContent.trim());
   let board = initialBoard.slice();
   let sequence = [];
   let orientationActions = [];
+  let setupSequence = [];
+  let cycleApplied = false;
+  let highlightedLabels = null;
 
   const opButtons = figure.querySelectorAll(".op-button");
   const orientButtons = figure.querySelectorAll(".op-orient-button");
   const restoreButton = figure.querySelector(".op-restore-button");
+  const setupButtons = figure.querySelectorAll(".op-setup-button");
+  const presetButtons = figure.querySelectorAll(".op-preset-button");
+  const undoButton = figure.querySelector(".op-undo-button");
   const resetButton = figure.querySelector(".op-reset");
   const sequenceOutput = figure.querySelector(".op-sequence");
   const cyclesOutput = figure.querySelector(".op-cycles");
+  const catchCurrent = figure.querySelector(".catch-current");
+  const catchCountOutput = figure.querySelector(".catch-count");
+  const catchTypeGrids = [...figure.querySelectorAll(".catch-type-grid")];
+  const foundTypes = new Set();
+
+  const fixedHighlight = presetButtons.length ? computePresetSupport(presetButtons[0].dataset.preset) : [];
+  const symmetries = catchTypeGrids.length ? computeSymmetries() : [];
+  const typeGridByKey = new Map(catchTypeGrids.map((grid) => [grid.dataset.cells, grid]));
 
   render();
 
@@ -51,16 +68,103 @@ function initOperationsPanel(boardElement) {
     });
   }
 
+  for (const button of setupButtons) {
+    button.addEventListener("click", () => {
+      applyOperation(button.dataset.op);
+      sequence.push(button.dataset.op);
+      setupSequence.push(button.dataset.op);
+      render();
+    });
+  }
+
+  for (const button of presetButtons) {
+    button.addEventListener("click", () => {
+      for (const op of button.dataset.preset.split("")) {
+        applyOperation(op);
+        sequence.push(op);
+      }
+      cycleApplied = true;
+      render();
+    });
+  }
+
+  if (undoButton) {
+    undoButton.addEventListener("click", () => {
+      highlightedLabels = fixedHighlight.map((index) => board[index]);
+      const undo = setupSequence.slice().reverse().map(invertLetter);
+      for (const op of undo) {
+        applyOperation(op);
+        sequence.push(op);
+      }
+      setupSequence = [];
+      cycleApplied = false;
+      render();
+    });
+  }
+
   resetButton.addEventListener("click", () => {
     board = initialBoard.slice();
     sequence = [];
     orientationActions = [];
+    setupSequence = [];
+    cycleApplied = false;
+    highlightedLabels = null;
+    foundTypes.clear();
+    for (const grid of catchTypeGrids) {
+      grid.classList.remove("is-found");
+      grid.disabled = true;
+    }
+    if (catchCountOutput) catchCountOutput.textContent = "0";
     render();
   });
+
+  for (const button of catchTypeGrids) {
+    button.addEventListener("click", () => {
+      if (button.disabled) return;
+      jumpToTriple(button.dataset.cells.split(",").map(Number));
+      render();
+    });
+  }
+
+  function jumpToTriple(targetPositions) {
+    board = board.map((_, index) => (targetPositions.includes(index + 1) ? "1" : "0"));
+  }
 
   function applyOperation(op) {
     const [row, column] = CORNERS[op.toUpperCase()];
     board = op === op.toUpperCase() ? rotateClockwise(board, row, column) : rotateAnticlockwise(board, row, column);
+  }
+
+  function computePresetSupport(preset) {
+    let temp = initialBoard.slice();
+    for (const letter of preset.split("")) {
+      const [row, column] = CORNERS[letter.toUpperCase()];
+      temp = letter === letter.toUpperCase() ? rotateClockwise(temp, row, column) : rotateAnticlockwise(temp, row, column);
+    }
+    const indices = [];
+    temp.forEach((label, index) => {
+      if (label !== initialBoard[index]) indices.push(index);
+    });
+    return indices;
+  }
+
+  function computeSymmetries() {
+    const identity = Array.from({ length: size * size }, (_, index) => String(index + 1));
+    const rotations = [identity];
+    for (let step = 0; step < 3; step += 1) rotations.push(rotateBoardClockwise(rotations[rotations.length - 1]));
+    return [...rotations, ...rotations.map((board) => flipBoardTopBottom(board))];
+  }
+
+  function canonicalType(positions) {
+    for (const symmetry of symmetries) {
+      const image = positions.map((position) => symmetry.indexOf(String(position)) + 1).sort((a, b) => a - b).join(",");
+      if (typeGridByKey.has(image)) return image;
+    }
+    return null;
+  }
+
+  function invertLetter(letter) {
+    return letter === letter.toUpperCase() ? letter.toLowerCase() : letter.toUpperCase();
   }
 
   function rotateClockwise(current, row, column) {
@@ -144,11 +248,45 @@ function initOperationsPanel(boardElement) {
   }
 
   function render() {
-    board.forEach((label, index) => {
-      tiles[index].textContent = label;
+    board.forEach((value, index) => {
+      if (discMode) {
+        tiles[index].innerHTML = value === "1" ? '<span class="tile-disc"></span>' : "";
+        const row = Math.floor(index / size) + 1;
+        const column = (index % size) + 1;
+        tiles[index].setAttribute("aria-label", `${value === "1" ? "marked" : "empty"}, row ${row}, column ${column}`);
+      } else {
+        tiles[index].textContent = value;
+      }
     });
-    sequenceOutput.textContent = sequence.length ? sequence.join(" ") : "(none yet)";
-    cyclesOutput.textContent = cycleNotation();
+    if (sequenceOutput) sequenceOutput.textContent = sequence.length ? sequence.join(" ") : "(none yet)";
+    if (cyclesOutput) cyclesOutput.textContent = cycleNotation();
     if (restoreButton) restoreButton.disabled = orientationActions.length === 0;
+    for (const button of setupButtons) button.disabled = cycleApplied;
+    for (const button of presetButtons) button.disabled = cycleApplied;
+    if (undoButton) undoButton.disabled = setupSequence.length === 0;
+
+    if (fixedHighlight.length) {
+      const highlighted = highlightedLabels
+        ? new Set(board.map((label, index) => (highlightedLabels.includes(label) ? index : -1)).filter((index) => index !== -1))
+        : new Set(fixedHighlight);
+      tiles.forEach((tile, index) => tile.classList.toggle("is-highlighted", highlighted.has(index)));
+    }
+
+    if (catchCurrent || catchTypeGrids.length) {
+      const positions = board.map((value, index) => (value === "1" ? index + 1 : -1)).filter((index) => index !== -1);
+      if (catchCurrent) renderDotGrid(catchCurrent, positions);
+      if (catchTypeGrids.length) {
+        const type = canonicalType(positions);
+        if (type && !foundTypes.has(type)) {
+          foundTypes.add(type);
+          const grid = typeGridByKey.get(type);
+          if (grid) {
+            grid.classList.add("is-found");
+            grid.disabled = false;
+          }
+          if (catchCountOutput) catchCountOutput.textContent = String(foundTypes.size);
+        }
+      }
+    }
   }
 }
