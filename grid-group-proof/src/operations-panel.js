@@ -41,9 +41,12 @@ function initOperationsPanel(boardElement) {
 
   for (const button of opButtons) {
     button.addEventListener("click", () => {
-      applyOperation(button.dataset.op);
-      sequence.push(button.dataset.op);
+      const op = button.dataset.op;
+      const previousRects = tileRectangles();
+      applyOperation(op);
+      sequence.push(op);
       render();
+      animateCornerRotation(op, previousRects);
     });
   }
 
@@ -70,10 +73,13 @@ function initOperationsPanel(boardElement) {
 
   for (const button of setupButtons) {
     button.addEventListener("click", () => {
-      applyOperation(button.dataset.op);
-      sequence.push(button.dataset.op);
-      setupSequence.push(button.dataset.op);
+      const op = button.dataset.op;
+      const previousRects = tileRectangles();
+      applyOperation(op);
+      sequence.push(op);
+      setupSequence.push(op);
       render();
+      animateCornerRotation(op, previousRects);
     });
   }
 
@@ -133,6 +139,34 @@ function initOperationsPanel(boardElement) {
   function applyOperation(op) {
     const [row, column] = CORNERS[op.toUpperCase()];
     board = op === op.toUpperCase() ? rotateClockwise(board, row, column) : rotateAnticlockwise(board, row, column);
+  }
+
+  function tileRectangles() {
+    return tiles.map((tile) => tile.getBoundingClientRect());
+  }
+
+  function animateCornerRotation(op, previousRects, duration = 270) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const [row, column] = CORNERS[op.toUpperCase()];
+    const clockwise = op === op.toUpperCase();
+    const topLeft = row * size + column;
+    const topRight = topLeft + 1;
+    const bottomLeft = topLeft + size;
+    const bottomRight = bottomLeft + 1;
+    const movements = clockwise
+      ? [[topLeft, topRight], [topRight, bottomRight], [bottomRight, bottomLeft], [bottomLeft, topLeft]]
+      : [[topRight, topLeft], [bottomRight, topRight], [bottomLeft, bottomRight], [topLeft, bottomLeft]];
+
+    for (const [source, destination] of movements) {
+      const sourceRect = previousRects[source];
+      const tile = tiles[destination];
+      if (!sourceRect || !tile || typeof tile.animate !== "function") continue;
+      const destinationRect = tile.getBoundingClientRect();
+      tile.animate([
+        { transform: `translate(${sourceRect.left - destinationRect.left}px, ${sourceRect.top - destinationRect.top}px)`, zIndex: 1 },
+        { transform: "translate(0, 0)", zIndex: 1 }
+      ], { duration, easing: "cubic-bezier(.2, .8, .2, 1)" });
+    }
   }
 
   function computePresetSupport(preset) {

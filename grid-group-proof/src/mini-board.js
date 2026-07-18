@@ -31,6 +31,7 @@ function initMiniBoard(boardElement, buttons) {
   }
 
   function rotateClockwise(row, column) {
+    const previousRects = tileRectangles();
     const topLeft = row * size + column;
     const topRight = topLeft + 1;
     const bottomLeft = topLeft + size;
@@ -42,6 +43,36 @@ function initMiniBoard(boardElement, buttons) {
     next[bottomLeft] = board[bottomRight];
     board = next;
     render();
+    animateRotation(row, column, previousRects);
+  }
+
+  function tileRectangles() {
+    return tiles.map((tile) => tile.getBoundingClientRect());
+  }
+
+  function animateRotation(row, column, previousRects, duration = 270) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const topLeft = row * size + column;
+    const topRight = topLeft + 1;
+    const bottomLeft = topLeft + size;
+    const bottomRight = bottomLeft + 1;
+    const movements = [
+      [topLeft, topRight],
+      [topRight, bottomRight],
+      [bottomRight, bottomLeft],
+      [bottomLeft, topLeft]
+    ];
+
+    for (const [source, destination] of movements) {
+      const sourceRect = previousRects[source];
+      const tile = tiles[destination];
+      if (!sourceRect || !tile || typeof tile.animate !== "function") continue;
+      const destinationRect = tile.getBoundingClientRect();
+      tile.animate([
+        { transform: `translate(${sourceRect.left - destinationRect.left}px, ${sourceRect.top - destinationRect.top}px)`, zIndex: 1 },
+        { transform: "translate(0, 0)", zIndex: 1 }
+      ], { duration, easing: "cubic-bezier(.2, .8, .2, 1)" });
+    }
   }
 
   function render() {
