@@ -1,0 +1,25 @@
+Development cycle:
+
+- I propose a basic mechanism, and we choose a name.
+- You put together a demo based on it (using other games as reference)
+- I interact with that and refine the model and/or suggest abstract experiments about playability etc.
+- Having converged on a set of mechanics and game generation, we work on UI tweaks (and URL coding)
+- Splash screen and addition to michael-albert-dun.github.io
+
+# Game 1
+
+- Some version of golf/football
+
+- On the 4x4 board with rotations of each 2x2 grid (in either direction, see two-way, though the mechanism needs refining) we place some number of 'balls' some number of 'holes' and some number of 'blocks'
+- The rotations move balls but not blocks or holes
+- The goal is to get all the balls into holes
+- A ball may not move on top of a block
+
+- Notion of a "par" score (a bit worse than perfect) and you can get eagles/birdies/par/bogey/double-bogey (probably stop there)
+
+# Game 2
+
+- The "catch them all" idea
+- From an initial set of tiles, move and rotate into as many/all possible positions you can
+- Record list of achieved positions around the outside (see e.g., matrixmind but much more compact)
+- Could also have blocking mechanism (this time blocks are static I think)

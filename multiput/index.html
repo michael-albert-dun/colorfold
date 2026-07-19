@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef5ef">
+  <title>Multiput</title>
+  <link rel="stylesheet" href="styles.css?v=3">
+  <script src="src/game.js?v=3" defer></script>
+</head>
+
+<body>
+  <main class="app">
+    <section class="play-area" aria-labelledby="title">
+      <button id="settings-button" class="settings-button" type="button" aria-expanded="false"
+        aria-controls="settings-panel" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true">
+          <circle cx="12" cy="12" r="6" />
+          <circle cx="12" cy="12" r="2.3" />
+          <rect x="10.7" y="3.5" width="2.6" height="2.4" rx="0.5" transform="rotate(0 12 12)" />
+          <rect x="10.7" y="3.5" width="2.6" height="2.4" rx="0.5" transform="rotate(45 12 12)" />
+          <rect x="10.7" y="3.5" width="2.6" height="2.4" rx="0.5" transform="rotate(90 12 12)" />
+          <rect x="10.7" y="3.5" width="2.6" height="2.4" rx="0.5" transform="rotate(135 12 12)" />
+          <rect x="10.7" y="3.5" width="2.6" height="2.4" rx="0.5" transform="rotate(180 12 12)" />
+          <rect x="10.7" y="3.5" width="2.6" height="2.4" rx="0.5" transform="rotate(225 12 12)" />
+          <rect x="10.7" y="3.5" width="2.6" height="2.4" rx="0.5" transform="rotate(270 12 12)" />
+          <rect x="10.7" y="3.5" width="2.6" height="2.4" rx="0.5" transform="rotate(315 12 12)" />
+        </svg></button>
+
+      <aside id="settings-panel" class="info-panel settings-panel" hidden>
+        <h2>Settings</h2>
+        <p class="settings-label">Scorecard layout</p>
+        <div class="settings-toggle" role="radiogroup" aria-label="Scorecard layout">
+          <label><input type="radio" name="scorecard-layout" value="horizontal" checked> Horizontal</label>
+          <label><input type="radio" name="scorecard-layout" value="vertical"> Vertical</label>
+        </div>
+      </aside>
+
+      <button id="info-button" class="info-button" type="button" aria-expanded="false" aria-controls="info-panel"
+        aria-label="How to play">i</button>
+
+      <aside id="info-panel" class="info-panel" hidden>
+        <h2>How to play</h2>
+        <p>A round is 9 holes, each with 1–3 balls and 1–3 sand traps. Get every ball into a hole, in as few rotations (strokes) as possible.</p>
+        <p>Choose clockwise or anticlockwise with the direction button, then use an internal rotation icon to turn its surrounding four squares.</p>
+        <p>Sand traps never move. A rotation is unavailable if it would carry a ball into one.</p>
+        <p>Par is a little worse than the optimal solution, so birdies, eagles, and sometimes even albatrosses are possible.</p>
+        <p>Moving to the next hole before finishing counts as a double bogey.</p>
+        <p>Scoring is modified Stableford: Albatross +8, Eagle +5, Birdie +2, Par 0, Bogey −1, Double Bogey or worse −3.</p>
+        <p>This page's address is the course — share it and everyone plays the same 9 holes.</p>
+      </aside>
+
+      <div class="masthead">
+        <h1 id="title" class="title-hint" tabindex="0"
+          data-hint="Rotate 2×2 corners, in either direction, until every ball rests in a hole.">Multiput</h1>
+        <p class="subtitle">Sink every ball, one rotation at a time</p>
+        <button id="direction-button" class="direction-button" type="button" aria-pressed="true"
+          aria-label="Rotation direction: clockwise"></button>
+      </div>
+
+      <div id="board" class="board" aria-label="Golf board"></div>
+
+      <div class="status">
+        <p id="hole-progress" class="hole-progress" aria-live="polite"></p>
+        <button id="next-button" class="next-hole-button" type="button">Next hole</button>
+      </div>
+
+      <div id="scorecard" class="scorecard" aria-label="Scorecard"></div>
+    </section>
+  </main>
+</body>
+</html>
