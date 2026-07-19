@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#eef5ef">
   <title>Tangleputt</title>
-  <link rel="stylesheet" href="styles.css?v=18">
-  <script src="src/game.js?v=18" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20">
+  <script src="src/game.js?v=20" defer></script>
 </head>
 
 <body>
@@ -64,7 +64,10 @@
 
       <div class="status">
         <p id="hole-progress" class="hole-progress" aria-live="polite"></p>
-        <button id="next-button" class="next-hole-button" type="button">Next hole</button>
+        <div class="status-buttons">
+          <button id="undo-button" class="next-hole-button undo-button" type="button" hidden disabled>Undo</button>
+          <button id="next-button" class="next-hole-button" type="button">Next hole</button>
+        </div>
       </div>
 
       <div id="scorecard" class="scorecard" aria-label="Scorecard"></div>

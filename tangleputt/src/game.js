@@ -33,6 +33,7 @@ const state = {
   terrain: [],
   blocked: [],
   balls: [],
+  moveHistory: [],
   par: 0,
   practiceOptimum: 0,
   moves: 0,
@@ -46,6 +47,7 @@ const elements = {
   board: document.querySelector("#board"),
   holeProgress: document.querySelector("#hole-progress"),
   nextHole: document.querySelector("#next-button"),
+  undoButton: document.querySelector("#undo-button"),
   scorecard: document.querySelector("#scorecard"),
   directionButton: document.querySelector("#direction-button"),
   directionLabel: document.querySelector("#direction-label"),
@@ -57,6 +59,7 @@ const elements = {
 };
 
 elements.nextHole.addEventListener("click", handleNextHole);
+elements.undoButton.addEventListener("click", handleUndo);
 elements.directionButton.addEventListener("click", toggleDirection);
 elements.infoButton.addEventListener("click", toggleInfo);
 elements.settingsButton.addEventListener("click", toggleSettings);
@@ -95,6 +98,7 @@ function startPracticeHole() {
   state.practiceOptimum = generated.distance;
   state.moves = 0;
   state.complete = false;
+  state.moveHistory = [];
   applyTurf();
   render();
 }
@@ -132,6 +136,7 @@ function loadHole() {
   state.par = state.pars[state.holeNumber - 1];
   state.moves = 0;
   state.complete = false;
+  state.moveHistory = [];
   applyTurf();
   render();
 }
@@ -163,6 +168,18 @@ function handleNextHole() {
   }
   state.holeNumber += 1;
   loadHole();
+}
+
+// Practice-mode only. Each rotation pushes the pre-move ball layout onto
+// state.moveHistory (see performRotation), so undo just pops it back and
+// recomputes completeness -- repeatable, all the way back to the hole's
+// starting layout.
+function handleUndo() {
+  if (!state.moveHistory.length) return;
+  state.balls = state.moveHistory.pop();
+  state.moves -= 1;
+  state.complete = isComplete(state.balls, state.terrain);
+  render();
 }
 
 function applyTurf() {
@@ -506,6 +523,7 @@ function rotateAt(row, column) {
 function performRotation(row, column, animationDuration = 270, clockwise = true) {
   const tileRects = tileRectangles();
   const previousBalls = state.balls;
+  state.moveHistory.push(previousBalls);
   state.balls = rotate(state.balls, state.terrain, row, column, clockwise);
   state.moves += 1;
   state.complete = isComplete(state.balls, state.terrain);
@@ -621,9 +639,13 @@ function render() {
   elements.directionLabel.textContent = state.clockwise ? "Fade" : "Draw";
   elements.directionLabel.classList.toggle("is-anticlockwise", !state.clockwise);
 
+  elements.undoButton.hidden = !state.practiceMode;
+  elements.undoButton.disabled = !state.moveHistory.length;
+
   if (state.practiceMode) {
     renderPracticeProgress();
     elements.scorecard.hidden = true;
+    elements.scorecard.replaceChildren();
   } else {
     elements.scorecard.hidden = false;
     renderProgress();

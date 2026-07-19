@@ -227,6 +227,8 @@ h1 { position: relative; display: inline-block; margin: 0; font-size: clamp(2rem
 .hole-progress.is-eagle, .hole-progress.is-albatross { color: #1f7a8c; font-weight: 650; }
 .hole-progress.is-bogey, .hole-progress.is-double-bogey { color: #a5602f; font-weight: 650; }
 
+.status-buttons { display: flex; flex: 0 0 auto; gap: 8px; }
+
 .next-hole-button {
   flex: 0 0 auto;
   min-height: 33px;
@@ -241,6 +243,9 @@ h1 { position: relative; display: inline-block; margin: 0; font-size: clamp(2rem
   box-shadow: 0 5px 12px rgba(45,62,76,.06);
 }
 .next-hole-button:hover { background: #c6e4e9; }
+.undo-button { border-color: var(--tile-border); background: var(--button); }
+.undo-button:hover:not(:disabled) { background: var(--button-hover); }
+.undo-button:disabled { cursor: default; opacity: .48; }
 
 .scorecard {
   display: grid;
@@ -252,6 +257,7 @@ h1 { position: relative; display: inline-block; margin: 0; font-size: clamp(2rem
   overflow-x: auto;
   padding-bottom: 2px;
 }
+.scorecard[hidden] { display: none; }
 .scorecard-hole {
   display: grid;
   gap: 1px;
