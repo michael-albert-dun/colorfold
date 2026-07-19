@@ -41,7 +41,7 @@ const state = {
   clockwise: true,
   scorecard: [],
   roundOver: false,
-  practiceMode: loadPracticeModePreference()
+  practiceMode: false
 };
 const elements = {
   board: document.querySelector("#board"),
@@ -66,7 +66,6 @@ elements.settingsButton.addEventListener("click", toggleSettings);
 elements.practiceModeToggle.checked = state.practiceMode;
 elements.practiceModeToggle.addEventListener("change", () => {
   state.practiceMode = elements.practiceModeToggle.checked;
-  savePracticeModePreference(state.practiceMode);
   if (state.practiceMode) startPracticeHole();
   else startNewRound();
 });
@@ -915,20 +914,6 @@ function closeOutsidePanels(event) {
   }
   if (!elements.settingsPanel.hidden && !elements.settingsPanel.contains(event.target) && !elements.settingsButton.contains(event.target)) {
     closePanel(elements.settingsPanel, elements.settingsButton);
-  }
-}
-function loadPracticeModePreference() {
-  try {
-    return window.localStorage.getItem("tangleputt-practice-mode") === "true";
-  } catch (error) {
-    return false;
-  }
-}
-function savePracticeModePreference(value) {
-  try {
-    window.localStorage.setItem("tangleputt-practice-mode", String(value));
-  } catch (error) {
-    console.warn("Could not save practice mode preference", error);
   }
 }
 function handleKeyDown(event) {
