@@ -43,6 +43,7 @@ const elements = {
   nextHole: document.querySelector("#next-button"),
   scorecard: document.querySelector("#scorecard"),
   directionButton: document.querySelector("#direction-button"),
+  directionLabel: document.querySelector("#direction-label"),
   infoButton: document.querySelector("#info-button"),
   infoPanel: document.querySelector("#info-panel"),
   settingsButton: document.querySelector("#settings-button"),
@@ -208,9 +209,10 @@ function arrayFromIndices(indices) {
 // if there's any optimal-length solution using only boring moves throughout,
 // since that means the puzzle never actually requires coordinating balls
 // together. Only checked with 2+ balls, since with exactly one ball no move
-// can ever be anything but boring.
-function ballsMovedBy(balls, row, column) {
-  return cornerCells(row, column).filter((position) => balls[position]).length;
+// can ever be anything but boring. Sunk balls don't count -- they never
+// actually move.
+function ballsMovedBy(balls, terrain, row, column) {
+  return cornerCells(row, column).filter((position) => balls[position] && !terrain[position]).length;
 }
 
 function hasBoringOptimalSolution(initialBalls, blocked, terrain, targetDistance) {
@@ -224,10 +226,10 @@ function hasBoringOptimalSolution(initialBalls, blocked, terrain, targetDistance
       const balls = arrayFromMask(mask);
       for (let row = 0; row < SIZE - 1; row += 1) {
         for (let column = 0; column < SIZE - 1; column += 1) {
-          if (ballsMovedBy(balls, row, column) > 1) continue;
+          if (ballsMovedBy(balls, terrain, row, column) > 1) continue;
           for (const clockwise of [true, false]) {
-            if (!isLegal(balls, blocked, row, column, clockwise)) continue;
-            const rotated = rotate(balls, row, column, clockwise);
+            if (!isLegal(balls, blocked, terrain, row, column, clockwise)) continue;
+            const rotated = rotate(balls, terrain, row, column, clockwise);
             const rotatedMask = maskFromArray(rotated);
             if (rotatedMask === targetMask) return true;
             if (visited.has(rotatedMask)) continue;
@@ -331,39 +333,16 @@ function updateCourseUrl() {
 }
 
 // --- Core rotation rule ----------------------------------------------------
-// The four-cycle is always the standard, unmodified rotation used throughout
-// the tintangle family. Sand traps never move; a rotation is simply illegal
-// (not performed) if it would carry a ball onto a cell one currently occupies.
-
-function rotateClockwise(balls, row, column) {
-  const next = balls.slice();
-  const topLeft = row * SIZE + column;
-  const topRight = topLeft + 1;
-  const bottomLeft = topLeft + SIZE;
-  const bottomRight = bottomLeft + 1;
-  next[topLeft] = balls[bottomLeft];
-  next[topRight] = balls[topLeft];
-  next[bottomRight] = balls[topRight];
-  next[bottomLeft] = balls[bottomRight];
-  return next;
-}
-
-function rotateAnticlockwise(balls, row, column) {
-  const next = balls.slice();
-  const topLeft = row * SIZE + column;
-  const topRight = topLeft + 1;
-  const bottomLeft = topLeft + SIZE;
-  const bottomRight = bottomLeft + 1;
-  next[topLeft] = balls[topRight];
-  next[topRight] = balls[bottomRight];
-  next[bottomRight] = balls[bottomLeft];
-  next[bottomLeft] = balls[topLeft];
-  return next;
-}
-
-function rotate(balls, row, column, clockwise) {
-  return clockwise ? rotateClockwise(balls, row, column) : rotateAnticlockwise(balls, row, column);
-}
+// A rotation is always a genuine four-cycle around its corner, physically
+// carrying each cell's content to the next one -- except that a sunk ball
+// (one already resting in its hole) never moves again. A sunk cell is
+// excluded from the cycle: whichever cell would otherwise have fed it
+// instead feeds directly to whatever the sunk cell would have fed, skipping
+// over it. That skip is only legal if the cell being skipped *from* is
+// itself empty -- if it holds a ball, that ball would have to jump more
+// than one step to find a landing spot, which isn't a real rotation, so the
+// whole move is illegal. On top of that, exactly as for sand traps, a
+// rotation is illegal if it would carry a ball onto one.
 
 function cornerCells(row, column) {
   const topLeft = row * SIZE + column;
@@ -373,24 +352,74 @@ function cornerCells(row, column) {
   return [topLeft, topRight, bottomRight, bottomLeft];
 }
 
-function isLegal(balls, blocked, row, column, clockwise) {
-  const rotated = rotate(balls, row, column, clockwise);
-  return !cornerCells(row, column).some((position) => blocked[position] && rotated[position]);
+// The order content flows around the corner: order[i] moves to order[i + 1]
+// (wrapping). E.g. clockwise, whatever is at the bottom-left moves to the
+// top-left, top-left to top-right, top-right to bottom-right, and back.
+function rotationOrder(row, column, clockwise) {
+  const [topLeft, topRight, bottomRight, bottomLeft] = cornerCells(row, column);
+  return clockwise ? [bottomLeft, topLeft, topRight, bottomRight] : [topLeft, bottomLeft, bottomRight, topRight];
+}
+
+function frozenMap(balls, terrain, order) {
+  return order.map((position) => balls[position] && terrain[position]);
+}
+
+// For each position in order, find its effective source: the nearest
+// non-frozen predecessor, skipping over any frozen (sunk-ball) cells.
+// `skipped` is true only when at least one other cell was actually jumped
+// over -- not when every other cell is frozen and the search wraps back to
+// the position itself, which is a true no-op rather than a jump.
+function effectiveSources(order, frozen) {
+  return order.map((_, destIndex) => {
+    if (frozen[destIndex]) return null;
+    let sourceIndex = (destIndex - 1 + 4) % 4;
+    let skipped = false;
+    while (frozen[sourceIndex]) {
+      sourceIndex = (sourceIndex - 1 + 4) % 4;
+      skipped = true;
+    }
+    if (sourceIndex === destIndex) skipped = false;
+    return { sourceIndex, skipped };
+  });
+}
+
+function rotate(balls, terrain, row, column, clockwise) {
+  const order = rotationOrder(row, column, clockwise);
+  const frozen = frozenMap(balls, terrain, order);
+  const sources = effectiveSources(order, frozen);
+  const next = balls.slice();
+  order.forEach((position, index) => {
+    if (frozen[index]) return;
+    next[position] = balls[order[sources[index].sourceIndex]];
+  });
+  return next;
+}
+
+function isLegal(balls, blocked, terrain, row, column, clockwise) {
+  const order = rotationOrder(row, column, clockwise);
+  const frozen = frozenMap(balls, terrain, order);
+  if (frozen.every(Boolean)) return true;
+  const sources = effectiveSources(order, frozen);
+  const wouldSkipAMovingBall = sources.some((source, index) => !frozen[index] && source.skipped && balls[order[source.sourceIndex]]);
+  if (wouldSkipAMovingBall) return false;
+  const rotated = rotate(balls, terrain, row, column, clockwise);
+  return !order.some((position) => blocked[position] && rotated[position]);
 }
 
 function rotateAt(row, column) {
   if (state.complete || state.roundOver) return;
-  if (!isLegal(state.balls, state.blocked, row, column, state.clockwise)) return;
+  if (!isLegal(state.balls, state.blocked, state.terrain, row, column, state.clockwise)) return;
   performRotation(row, column, 270, state.clockwise);
 }
 
 function performRotation(row, column, animationDuration = 270, clockwise = true) {
   const tileRects = tileRectangles();
-  state.balls = rotate(state.balls, row, column, clockwise);
+  const previousBalls = state.balls;
+  state.balls = rotate(state.balls, state.terrain, row, column, clockwise);
   state.moves += 1;
   state.complete = isComplete(state.balls, state.terrain);
   render();
-  animateRotation(row, column, clockwise, tileRects, animationDuration);
+  animateRotation(row, column, clockwise, previousBalls, tileRects, animationDuration);
 }
 
 function isComplete(balls, terrain) {
@@ -418,8 +447,8 @@ function solve(initialBalls, blocked, terrain) {
       for (let row = 0; row < SIZE - 1; row += 1) {
         for (let column = 0; column < SIZE - 1; column += 1) {
           for (const clockwise of [true, false]) {
-            if (!isLegal(balls, blocked, row, column, clockwise)) continue;
-            const rotated = rotate(balls, row, column, clockwise);
+            if (!isLegal(balls, blocked, terrain, row, column, clockwise)) continue;
+            const rotated = rotate(balls, terrain, row, column, clockwise);
             const rotatedMask = maskFromArray(rotated);
             if (visited.has(rotatedMask)) continue;
             if (rotatedMask === targetMask) return depth;
@@ -491,6 +520,8 @@ function render() {
   elements.directionButton.setAttribute("aria-pressed", String(state.clockwise));
   elements.directionButton.setAttribute("aria-label", `Rotation direction: ${direction}`);
   elements.directionButton.innerHTML = rotationIcon();
+  elements.directionLabel.textContent = state.clockwise ? "Fade" : "Draw";
+  elements.directionLabel.classList.toggle("is-anticlockwise", !state.clockwise);
 
   renderProgress();
   renderScorecard();
@@ -506,7 +537,7 @@ function renderProgress() {
     return;
   }
 
-  let text = `Hole ${state.holeNumber} of ${ROUND_LENGTH} · Par ${state.par} · ${state.moves} ${state.moves === 1 ? "stroke" : "strokes"}`;
+  let text = `Hole ${state.holeNumber} · Par ${state.par} · ${state.moves} ${state.moves === 1 ? "stroke" : "strokes"}`;
   let className = "hole-progress";
   if (state.complete) {
     const tier = scoreFor(state.moves, state.par);
@@ -544,6 +575,30 @@ function scorecardCellData(entry) {
   return { strokesText, resultText, pointsText, className };
 }
 
+// The running total should reflect a completed-but-not-yet-recorded current
+// hole immediately, not only once "Next hole" commits it to the scorecard.
+function currentTotal() {
+  const recorded = state.scorecard.reduce((sum, entry) => sum + (entry.points ?? 0), 0);
+  const currentEntry = state.scorecard[state.holeNumber - 1];
+  if (state.complete && currentEntry && !currentEntry.played) {
+    return recorded + scoreFor(state.moves, state.par).points;
+  }
+  return recorded;
+}
+
+function courseParTotal() {
+  return state.scorecard.reduce((sum, entry) => sum + entry.par, 0);
+}
+
+// Unlike points, a stroke count is always well-defined, so this includes the
+// current hole's live count whether or not it's finished yet.
+function currentStrokesTotal() {
+  const recorded = state.scorecard.reduce((sum, entry) => sum + (entry.strokes ?? 0), 0);
+  const currentEntry = state.scorecard[state.holeNumber - 1];
+  if (!state.roundOver && currentEntry && !currentEntry.played) return recorded + state.moves;
+  return recorded;
+}
+
 function renderScorecard() {
   if (state.scorecardLayout === "vertical") renderScorecardVertical();
   else renderScorecardHorizontal();
@@ -560,11 +615,11 @@ function renderScorecardHorizontal() {
     </div>`;
   }).join("");
 
-  const total = state.scorecard.reduce((sum, entry) => sum + (entry.points ?? 0), 0);
+  const total = currentTotal();
   const totalCell = `<div class="scorecard-hole scorecard-total">
       <span class="scorecard-cell scorecard-head">Tot</span>
-      <span class="scorecard-cell">–</span>
-      <span class="scorecard-cell">–</span>
+      <span class="scorecard-cell">${courseParTotal()}</span>
+      <span class="scorecard-cell">${currentStrokesTotal()}</span>
       <span class="scorecard-cell scorecard-points">${formatPoints(total)}</span>
     </div>`;
 
@@ -583,11 +638,17 @@ function renderScorecardVertical() {
     </tr>`;
   }).join("");
 
-  const total = state.scorecard.reduce((sum, entry) => sum + (entry.points ?? 0), 0);
+  const total = currentTotal();
   elements.scorecard.innerHTML = `<table class="scorecard-table">
       <thead><tr><th>Hole</th><th>Par</th><th>Strokes</th><th>Result</th><th>Pts</th></tr></thead>
       <tbody>${rows}</tbody>
-      <tfoot><tr><td colspan="4">Total</td><td>${formatPoints(total)}</td></tr></tfoot>
+      <tfoot><tr>
+        <td>Total</td>
+        <td>${courseParTotal()}</td>
+        <td>${currentStrokesTotal()}</td>
+        <td></td>
+        <td>${formatPoints(total)}</td>
+      </tr></tfoot>
     </table>`;
 }
 
@@ -597,18 +658,30 @@ function toggleDirection() {
   render();
 }
 
+// Only called when isLegal() has already said a rotation is disallowed, to
+// work out which of its two reasons applies, purely for the aria-label.
+function disabledRotationReason(row, column) {
+  const order = rotationOrder(row, column, state.clockwise);
+  const frozen = frozenMap(state.balls, state.terrain, order);
+  const sources = effectiveSources(order, frozen);
+  const skipsAMovingBall = sources.some((source, index) => !frozen[index] && source.skipped && state.balls[order[source.sourceIndex]]);
+  return skipsAMovingBall ? "would make a ball jump past one already sunk in its hole" : "would carry a ball onto a sand trap";
+}
+
 function makeRotationButton(row, column) {
   const button = document.createElement("button");
-  const disabled = state.roundOver || !isLegal(state.balls, state.blocked, row, column, state.clockwise);
+  const legal = isLegal(state.balls, state.blocked, state.terrain, row, column, state.clockwise);
+  const disabled = state.roundOver || !legal;
+  const reason = state.roundOver ? "the round is over" : (legal ? null : disabledRotationReason(row, column));
   button.className = `rotation-button${state.clockwise ? "" : " is-anticlockwise"}`;
   button.type = "button";
   button.style.setProperty("--row", String(row + 1));
   button.style.setProperty("--column", String(column + 1));
   button.disabled = disabled;
   button.setAttribute("aria-label", disabled
-    ? `Rotation unavailable — would carry a ball onto a sand trap (rows ${row + 1}–${row + 2}, columns ${column + 1}–${column + 2})`
+    ? `Rotation unavailable — ${reason} (rows ${row + 1}–${row + 2}, columns ${column + 1}–${column + 2})`
     : `Rotate the four squares around this corner ${state.clockwise ? "clockwise" : "anticlockwise"} (rows ${row + 1}–${row + 2}, columns ${column + 1}–${column + 2})`);
-  button.innerHTML = rotationIcon();
+  button.innerHTML = `<span class="rotation-disc"></span>${rotationIcon()}`;
   button.addEventListener("click", () => rotateAt(row, column));
   return button;
 }
@@ -621,28 +694,26 @@ function tileRectangles() {
   return new Map([...elements.board.querySelectorAll(".tile")].map((tile) => [Number(tile.dataset.index), tile.getBoundingClientRect()]));
 }
 
-function animateRotation(row, column, clockwise, previousRects, duration = 270) {
+function animateRotation(row, column, clockwise, previousBalls, previousRects, duration = 270) {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const [topLeft, topRight, bottomRight, bottomLeft] = cornerCells(row, column);
-  const clockwiseMovements = [
-    [topLeft, topRight],
-    [topRight, bottomRight],
-    [bottomRight, bottomLeft],
-    [bottomLeft, topLeft]
-  ];
-  const movements = clockwise ? clockwiseMovements : clockwiseMovements.map(([source, destination]) => [destination, source]);
+  const order = rotationOrder(row, column, clockwise);
+  const frozen = frozenMap(previousBalls, state.terrain, order);
+  const sources = effectiveSources(order, frozen);
 
-  for (const [source, destination] of movements) {
+  order.forEach((destination, index) => {
+    if (frozen[index]) return;
+    const source = order[sources[index].sourceIndex];
+    if (source === destination || !previousBalls[source]) return;
     const sourceRect = previousRects.get(source);
     const tile = elements.board.querySelector(`[data-index="${destination}"]`);
     const target = tile && tile.querySelector(".ball");
-    if (!sourceRect || !target || typeof target.animate !== "function") continue;
+    if (!sourceRect || !target || typeof target.animate !== "function") return;
     const destinationRect = tile.getBoundingClientRect();
     target.animate([
       { transform: `translate(${sourceRect.left - destinationRect.left}px, ${sourceRect.top - destinationRect.top}px)`, zIndex: 1 },
       { transform: "translate(0, 0)", zIndex: 1 }
     ], { duration, easing: "cubic-bezier(.2, .8, .2, 1)" });
-  }
+  });
 }
 
 function toggleInfo() {
@@ -672,14 +743,14 @@ function closeOutsidePanels(event) {
 }
 function loadScorecardLayoutPreference() {
   try {
-    return window.localStorage.getItem("multiput-scorecard-layout") === "vertical" ? "vertical" : "horizontal";
+    return window.localStorage.getItem("tangleputt-scorecard-layout") === "vertical" ? "vertical" : "horizontal";
   } catch (error) {
     return "horizontal";
   }
 }
 function saveScorecardLayoutPreference(value) {
   try {
-    window.localStorage.setItem("multiput-scorecard-layout", value);
+    window.localStorage.setItem("tangleputt-scorecard-layout", value);
   } catch (error) {
     console.warn("Could not save scorecard layout preference", error);
   }

@@ -130,12 +130,15 @@ h1 { position: relative; display: inline-block; margin: 0; font-size: clamp(2rem
 }
 .title-hint:hover::after, .title-hint:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
 
-.direction-button { position: relative; display: grid; width: 34px; height: 34px; margin: 10px auto -4px; padding: 0; place-items: center; border: 1px solid var(--tile-border); border-radius: 50%; background: rgba(251,253,255,.82); color: rgba(41,52,61,.82); cursor: pointer; box-shadow: 0 5px 12px rgba(45,62,76,.06); transition: background 140ms ease, color 140ms ease, transform 140ms ease; }
+.direction-row { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 10px auto -4px; }
+.direction-button { position: relative; display: grid; width: 34px; height: 34px; margin: 0; padding: 0; place-items: center; border: 1px solid var(--tile-border); border-radius: 50%; background: rgba(251,253,255,.82); color: rgba(41,52,61,.82); cursor: pointer; box-shadow: 0 5px 12px rgba(45,62,76,.06); transition: background 140ms ease, color 140ms ease, transform 140ms ease; }
 .direction-button:hover { background: var(--button-hover); color: var(--ink); transform: scale(1.08); }
 .direction-button svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.6; }
 .direction-button.is-anticlockwise { background: #d8edf1; color: #276e80; }
 .direction-button:not(.is-anticlockwise) { background: #f7e4d9; color: #8a5541; }
-.direction-button.is-anticlockwise svg, .rotation-button.is-anticlockwise svg { transform: scaleX(-1); }
+.direction-button.is-anticlockwise svg { transform: scaleX(-1); }
+.direction-label { font-size: .82rem; font-weight: 650; color: #8a5541; }
+.direction-label.is-anticlockwise { color: #276e80; }
 
 .board {
   position: relative;
@@ -196,12 +199,14 @@ h1 { position: relative; display: inline-block; margin: 0; font-size: clamp(2rem
 }
 .ball.is-sunk { box-shadow: 0 0 0 3px #f1c55f, 0 4px 8px rgba(45,62,76,.28); }
 
-.rotation-button { position: absolute; z-index: 2; top: calc(var(--row) * 25%); left: calc(var(--column) * 25%); display: grid; width: 29px; height: 29px; padding: 0; place-items: center; border: 0; border-radius: 50%; background: rgba(251,253,255,.7); color: rgba(41,52,61,.76); cursor: pointer; transform: translate(-50%, -50%); transition: color 140ms ease, transform 140ms ease, opacity 140ms ease; }
-.rotation-button:hover:not(:disabled) { color: var(--ink); transform: translate(-50%, -50%) scale(1.12); }
-.rotation-button svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.6; filter: drop-shadow(0 1px 1px rgba(255,255,255,.45)); }
-.rotation-button:not(.is-anticlockwise) { color: rgba(138,85,65,.88); }
-.rotation-button.is-anticlockwise { color: rgba(39,110,128,.88); }
+.rotation-button { position: absolute; z-index: 2; top: calc(var(--row) * 25%); left: calc(var(--column) * 25%); display: grid; width: 29px; height: 29px; padding: 0; place-items: center; border: 0; border-radius: 50%; background: transparent; cursor: pointer; transform: translate(-50%, -50%); transition: background 140ms ease, transform 140ms ease, opacity 140ms ease; }
+.rotation-button:hover:not(:disabled) { background: rgba(255,255,255,.35); transform: translate(-50%, -50%) scale(1.1); }
 .rotation-button:disabled { cursor: default; opacity: .32; }
+.rotation-disc { grid-area: 1 / 1; width: 9px; height: 9px; background: #34363a; transform: rotate(45deg); transition: opacity 140ms ease; }
+.rotation-button svg { grid-area: 1 / 1; width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2.6; color: rgba(41,52,61,.85); opacity: 0; transition: opacity 140ms ease; }
+.rotation-button:hover:not(:disabled) .rotation-disc { opacity: 0; }
+.rotation-button:hover:not(:disabled) svg { opacity: 1; }
+.rotation-button.is-anticlockwise svg { transform: scaleX(-1); }
 
 .status {
   display: flex;
@@ -284,5 +289,6 @@ button:focus-visible, .title-hint:focus-visible { outline: 3px solid var(--focus
   .play-area { padding: 18px 14px; border-radius: 22px; }
   .board { border-radius: 17px; }
   .rotation-button { width: 25px; height: 25px; }
-  .rotation-button svg { width: 18px; height: 18px; }
+  .rotation-disc { width: 8px; height: 8px; }
+  .rotation-button svg { width: 17px; height: 17px; }
 }
